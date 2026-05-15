@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { buttonClasses } from "@/components/button";
+import Eyebrow from "@/components/eyebrow";
+import { ArrowRightIcon, CheckIcon } from "@/components/icons";
 
 const benefits = [
   "Free during beta",
@@ -28,9 +31,7 @@ export default function Cta() {
             />
 
             <div className="mx-auto max-w-2xl text-center">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-                Get started
-              </span>
+              <Eyebrow>Get started</Eyebrow>
               <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight text-zinc-900 sm:text-5xl dark:text-white">
                 Build your sales workspace in{" "}
                 <span className="text-primary">under a minute</span>.
@@ -44,18 +45,7 @@ export default function Cta() {
                 {benefits.map((b) => (
                   <li key={b} className="inline-flex items-center gap-2">
                     <span className="grid h-4 w-4 place-items-center rounded-full bg-primary/10 text-primary">
-                      <svg
-                        className="h-2.5 w-2.5"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden
-                      >
-                        <path d="M2 6.5l2.5 2.5L10 3.5" />
-                      </svg>
+                      <CheckIcon className="h-2.5 w-2.5" />
                     </span>
                     {b}
                   </li>
@@ -65,25 +55,22 @@ export default function Cta() {
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link
                   href="/signup"
-                  className="group inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-primary to-secondary px-6 text-sm font-medium text-white shadow-sm shadow-primary/25 transition-all hover:shadow-md hover:shadow-primary/35 sm:w-auto"
+                  className={buttonClasses({
+                    variant: "primary",
+                    size: "md",
+                    className: "w-full sm:w-auto",
+                  })}
                 >
                   Start your workspace
-                  <svg
-                    className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden
-                  >
-                    <path d="M3 8h10M9 4l4 4-4 4" />
-                  </svg>
+                  <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
                 <Link
                   href="/login"
-                  className="inline-flex h-11 w-full items-center justify-center rounded-md border border-zinc-200 bg-white px-6 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 sm:w-auto dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800/70"
+                  className={buttonClasses({
+                    variant: "secondary",
+                    size: "md",
+                    className: "w-full sm:w-auto",
+                  })}
                 >
                   Sign in instead
                 </Link>

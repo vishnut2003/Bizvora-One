@@ -1,4 +1,7 @@
 import Link from "next/link";
+import Logo from "@/components/logo";
+import { buttonClasses } from "@/components/button";
+import { ArrowRightIcon } from "@/components/icons";
 
 const navLinks = [
   { href: "#features", label: "Features" },
@@ -15,16 +18,7 @@ export default function Header() {
             aria-hidden
             className="pointer-events-none absolute -left-3 -top-2 -z-10 h-10 w-20 rounded-full bg-gradient-to-r from-primary/30 to-secondary/30 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100"
           />
-          <span className="flex items-baseline text-xl font-bold tracking-tight">
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              WSS
-            </span>
-            <span className="ml-1.5 text-zinc-900 dark:text-white">CRM</span>
-            <span
-              aria-hidden
-              className="ml-0.5 h-1.5 w-1.5 translate-y-[-2px] rounded-full bg-gradient-to-br from-primary to-secondary"
-            />
-          </span>
+          <Logo />
           <span className="hidden rounded-full border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary sm:inline-block">
             Beta
           </span>
@@ -49,33 +43,20 @@ export default function Header() {
         <div className="flex items-center gap-2">
           <Link
             href="/login"
-            className="hidden h-9 items-center justify-center rounded-md px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 sm:inline-flex dark:text-zinc-300 dark:hover:bg-zinc-800/70"
+            className={buttonClasses({
+              variant: "ghost",
+              size: "sm",
+              className: "hidden sm:inline-flex",
+            })}
           >
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="group relative inline-flex h-9 items-center justify-center overflow-hidden rounded-md bg-gradient-to-r from-primary to-secondary px-4 text-sm font-medium text-white shadow-sm shadow-primary/25 transition-all duration-200 hover:shadow-md hover:shadow-primary/35"
+            className={buttonClasses({ variant: "primary", size: "sm" })}
           >
-            <span
-              aria-hidden
-              className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-500 group-hover:translate-x-full"
-            />
-            <span className="relative flex items-center gap-1.5">
-              Get started
-              <svg
-                className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden
-              >
-                <path d="M3 8h10M9 4l4 4-4 4" />
-              </svg>
-            </span>
+            Get started
+            <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
       </div>

@@ -1,4 +1,7 @@
 import Link from "next/link";
+import Logo from "@/components/logo";
+import Button from "@/components/button";
+import Input from "@/components/input";
 
 const columns = [
   {
@@ -83,17 +86,8 @@ export default function Footer() {
       <div className="mx-auto w-full max-w-6xl px-6 py-16">
         <div className="grid grid-cols-2 gap-10 lg:grid-cols-12">
           <div className="col-span-2 lg:col-span-4">
-            <Link href="/" className="inline-flex items-baseline">
-              <span className="flex items-baseline text-xl font-bold tracking-tight">
-                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  WSS
-                </span>
-                <span className="ml-1.5 text-zinc-900 dark:text-white">CRM</span>
-                <span
-                  aria-hidden
-                  className="ml-0.5 h-1.5 w-1.5 translate-y-[-2px] rounded-full bg-gradient-to-br from-primary to-secondary"
-                />
-              </span>
+            <Link href="/" className="inline-block">
+              <Logo />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-6 text-zinc-600 dark:text-zinc-400">
               The sales CRM your team will actually use. Pipelines, contacts, and
@@ -142,18 +136,15 @@ export default function Footer() {
               Product updates, sales playbooks. One email a month.
             </p>
             <div className="mt-4 flex flex-col gap-2">
-              <input
+              <Input
                 type="email"
                 placeholder="you@acme.co"
                 aria-label="Email address"
-                className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                className="h-9"
               />
-              <button
-                type="button"
-                className="inline-flex h-9 items-center justify-center rounded-md bg-gradient-to-r from-primary to-secondary px-3 text-sm font-medium text-white shadow-sm shadow-primary/25 transition-all hover:shadow-md hover:shadow-primary/35"
-              >
+              <Button variant="primary" size="sm" className="px-3">
                 Subscribe
-              </button>
+              </Button>
             </div>
           </div>
         </div>

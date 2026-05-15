@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Eyebrow from "@/components/eyebrow";
+import { ArrowRightIcon, CheckIcon } from "@/components/icons";
 
 type Step = {
   n: string;
@@ -63,9 +65,7 @@ export default function HowItWorks() {
 
       <div className="mx-auto w-full max-w-6xl px-6">
         <div className="max-w-2xl">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            Getting started
-          </span>
+          <Eyebrow>Getting started</Eyebrow>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             From signup to your first deal in under a minute.
           </h2>
@@ -103,9 +103,7 @@ export default function HowItWorks() {
                   aria-hidden
                   className="pointer-events-none absolute -right-3 top-1/2 hidden h-7 w-7 -translate-y-1/2 place-items-center rounded-full border border-zinc-200 bg-white text-zinc-400 lg:grid dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500"
                 >
-                  <svg className="h-3.5 w-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 6h6M7 3l3 3-3 3" />
-                  </svg>
+                  <ArrowRightIcon className="h-3.5 w-3.5" />
                 </span>
               ) : null}
             </li>
@@ -128,9 +126,7 @@ function SignupVisual() {
       </div>
       <div className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-md bg-gradient-to-r from-primary to-secondary px-3 text-[11px] font-medium text-white">
         Continue
-        <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M3 6h6M7 3l3 3-3 3" />
-        </svg>
+        <ArrowRightIcon className="h-3 w-3" />
       </div>
     </div>
   );
@@ -162,11 +158,7 @@ function WorkspaceVisual() {
                 : "border-zinc-200 bg-white text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
             }`}
           >
-            {p.active ? (
-              <svg className="h-2.5 w-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M2 6.5l2.5 2.5L10 3.5" />
-              </svg>
-            ) : null}
+            {p.active ? <CheckIcon className="h-2.5 w-2.5" /> : null}
             {p.label}
           </span>
         ))}

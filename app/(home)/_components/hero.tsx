@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { buttonClasses } from "@/components/button";
+import { ArrowRightIcon } from "@/components/icons";
 
 const pipeline = [
   {
@@ -81,25 +83,22 @@ export default function Hero() {
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="group inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-primary to-secondary px-6 text-sm font-medium text-white shadow-sm shadow-primary/25 transition-all hover:shadow-md hover:shadow-primary/35 sm:w-auto"
+              className={buttonClasses({
+                variant: "primary",
+                size: "md",
+                className: "w-full sm:w-auto",
+              })}
             >
               Start your workspace
-              <svg
-                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden
-              >
-                <path d="M3 8h10M9 4l4 4-4 4" />
-              </svg>
+              <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <a
               href="#features"
-              className="inline-flex h-11 w-full items-center justify-center rounded-md border border-zinc-200 bg-white px-6 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 sm:w-auto dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800/70"
+              className={buttonClasses({
+                variant: "secondary",
+                size: "md",
+                className: "w-full sm:w-auto",
+              })}
             >
               See how it works
             </a>

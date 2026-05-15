@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Eyebrow from "@/components/eyebrow";
+import { CheckIcon } from "@/components/icons";
 
 type Feature = {
   title: string;
@@ -85,9 +87,7 @@ export default function Features() {
     <section id="features" className="border-b border-zinc-200 py-24 dark:border-zinc-800">
       <div className="mx-auto w-full max-w-6xl px-6">
         <div className="max-w-2xl">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            Features
-          </span>
+          <Eyebrow>Features</Eyebrow>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             Everything a sales team needs. None of what they don&apos;t.
           </h2>
@@ -228,15 +228,11 @@ function TeamVisual() {
         </p>
         <ul className="mt-2 space-y-1 text-[11px] text-zinc-700 dark:text-zinc-300">
           <li className="flex items-center gap-1.5">
-            <svg className="h-3 w-3 text-emerald-500" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M2 6.5l2.5 2.5L10 3.5" />
-            </svg>
+            <CheckIcon className="h-3 w-3 text-emerald-500" />
             SSO &amp; SAML
           </li>
           <li className="flex items-center gap-1.5">
-            <svg className="h-3 w-3 text-emerald-500" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M2 6.5l2.5 2.5L10 3.5" />
-            </svg>
+            <CheckIcon className="h-3 w-3 text-emerald-500" />
             Audit logs
           </li>
         </ul>
