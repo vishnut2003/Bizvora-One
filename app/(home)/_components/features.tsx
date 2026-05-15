@@ -89,7 +89,7 @@ export default function Features() {
             Features
           </span>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-            Everything a sales team needs. None of what they don't.
+            Everything a sales team needs. None of what they don&apos;t.
           </h2>
           <p className="mt-4 text-balance text-zinc-600 dark:text-zinc-400">
             Workspaces are isolated, customizable, and yours to shape — without the bloat

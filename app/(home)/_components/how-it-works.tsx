@@ -70,7 +70,7 @@ export default function HowItWorks() {
             From signup to your first deal in under a minute.
           </h2>
           <p className="mt-4 text-balance text-zinc-600 dark:text-zinc-400">
-            Three steps. That's the whole onboarding.
+            Three steps. That&apos;s the whole onboarding.
           </p>
         </div>
 

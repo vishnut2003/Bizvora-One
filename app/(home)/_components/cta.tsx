@@ -36,8 +36,8 @@ export default function Cta() {
                 <span className="text-primary">under a minute</span>.
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-balance text-zinc-600 dark:text-zinc-400">
-                Bring your team, your contacts, and your pipeline. We'll get out of the
-                way so you can get back to closing.
+                Bring your team, your contacts, and your pipeline. We&apos;ll get out of
+                the way so you can get back to closing.
               </p>
 
               <ul className="mx-auto mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-zinc-700 dark:text-zinc-300">
