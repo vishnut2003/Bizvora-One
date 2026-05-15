@@ -27,3 +27,28 @@ export function CheckIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function PlusIcon(props: IconProps) {
+  return (
+    <svg {...defaultProps} {...props}>
+      <path d="M8 3v10M3 8h10" />
+    </svg>
+  );
+}
+
+export function LogOutIcon(props: IconProps) {
+  return (
+    <svg {...defaultProps} {...props}>
+      <path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3" />
+      <path d="M10 11l3-3-3-3M13 8H6" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon(props: IconProps) {
+  return (
+    <svg {...defaultProps} {...props}>
+      <path d="M6 3l5 5-5 5" />
+    </svg>
+  );
+}
