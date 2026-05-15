@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Logo from "@/components/logo";
 import { buttonClasses } from "@/components/button";
-import { ArrowRightIcon } from "@/components/icons";
+import { ArrowRight } from "lucide-react";
 
 const navLinks = [
   { href: "#features", label: "Features" },
@@ -56,7 +56,7 @@ export default function Header() {
             className={buttonClasses({ variant: "primary", size: "sm" })}
           >
             Get started
-            <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
       </div>

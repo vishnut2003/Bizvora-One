@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRightIcon } from "@/components/icons";
+import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { timeAgo } from "@/lib/time";
 import type { WorkspaceColor, WorkspaceMemberRole } from "@/lib/workspace";
@@ -119,7 +119,7 @@ export default function WorkspaceCard({
         aria-hidden
         className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-transparent text-zinc-300 transition-all group-hover:translate-x-0 group-hover:border-zinc-200 group-hover:bg-white group-hover:text-zinc-900 group-hover:shadow-sm dark:text-zinc-600 dark:group-hover:border-zinc-700 dark:group-hover:bg-zinc-800 dark:group-hover:text-zinc-100"
       >
-        <ChevronRightIcon className="h-3.5 w-3.5" />
+        <ChevronRight className="h-3.5 w-3.5" />
       </span>
     </Link>
   );

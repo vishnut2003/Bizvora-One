@@ -5,7 +5,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import Button from "@/components/button";
 import Field from "@/components/field";
-import { ArrowRightIcon } from "@/components/icons";
+import { ArrowRight } from "lucide-react";
 import { signup, type SignupState } from "../actions";
 
 export default function SignupForm() {
@@ -112,7 +112,7 @@ export default function SignupForm() {
           aria-busy={pending}
         >
           {pending ? "Creating account…" : "Continue"}
-          <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </Button>
 
         <p className="pt-2 text-center text-[11px] text-zinc-500 dark:text-zinc-500">

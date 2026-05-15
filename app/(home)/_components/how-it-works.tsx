@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Eyebrow from "@/components/eyebrow";
-import { ArrowRightIcon, CheckIcon } from "@/components/icons";
+import { ArrowRight, Check } from "lucide-react";
 
 type Step = {
   n: string;
@@ -103,7 +103,7 @@ export default function HowItWorks() {
                   aria-hidden
                   className="pointer-events-none absolute -right-3 top-1/2 hidden h-7 w-7 -translate-y-1/2 place-items-center rounded-full border border-zinc-200 bg-white text-zinc-400 lg:grid dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500"
                 >
-                  <ArrowRightIcon className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </span>
               ) : null}
             </li>
@@ -126,7 +126,7 @@ function SignupVisual() {
       </div>
       <div className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-md bg-gradient-to-r from-primary to-secondary px-3 text-[11px] font-medium text-white">
         Continue
-        <ArrowRightIcon className="h-3 w-3" />
+        <ArrowRight className="h-3 w-3" />
       </div>
     </div>
   );
@@ -158,7 +158,7 @@ function WorkspaceVisual() {
                 : "border-zinc-200 bg-white text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
             }`}
           >
-            {p.active ? <CheckIcon className="h-2.5 w-2.5" /> : null}
+            {p.active ? <Check className="h-2.5 w-2.5" /> : null}
             {p.label}
           </span>
         ))}

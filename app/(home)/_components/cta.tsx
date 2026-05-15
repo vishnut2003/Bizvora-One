@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { buttonClasses } from "@/components/button";
 import Eyebrow from "@/components/eyebrow";
-import { ArrowRightIcon, CheckIcon } from "@/components/icons";
+import { ArrowRight, Check } from "lucide-react";
 
 const benefits = [
   "Free during beta",
@@ -45,7 +45,7 @@ export default function Cta() {
                 {benefits.map((b) => (
                   <li key={b} className="inline-flex items-center gap-2">
                     <span className="grid h-4 w-4 place-items-center rounded-full bg-primary/10 text-primary">
-                      <CheckIcon className="h-2.5 w-2.5" />
+                      <Check className="h-2.5 w-2.5" />
                     </span>
                     {b}
                   </li>
@@ -62,7 +62,7 @@ export default function Cta() {
                   })}
                 >
                   Start your workspace
-                  <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
                 <Link
                   href="/login"

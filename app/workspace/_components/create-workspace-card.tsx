@@ -5,7 +5,7 @@ import Button from "@/components/button";
 import Input from "@/components/input";
 import Popup from "@/components/popup";
 import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { CheckIcon, ChevronRightIcon, PlusIcon } from "@/components/icons";
+import { Check, ChevronRight, Plus } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { WORKSPACE_COLORS, type WorkspaceColor } from "@/lib/workspace";
 import {
@@ -83,7 +83,7 @@ export default function CreateWorkspaceCard() {
             aria-hidden
             className="absolute inset-0 rounded-lg bg-gradient-to-b from-white/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
           />
-          <PlusIcon className="relative h-4 w-4 text-zinc-400 transition-colors group-hover:text-white dark:text-zinc-500" />
+          <Plus className="relative h-4 w-4 text-zinc-400 transition-colors group-hover:text-white dark:text-zinc-500" />
         </span>
 
         <div className="min-w-0 flex-1">
@@ -99,7 +99,7 @@ export default function CreateWorkspaceCard() {
           aria-hidden
           className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-transparent text-zinc-300 transition-all group-hover:border-zinc-200 group-hover:bg-white group-hover:text-zinc-900 group-hover:shadow-sm dark:text-zinc-600 dark:group-hover:border-zinc-700 dark:group-hover:bg-zinc-800 dark:group-hover:text-zinc-100"
         >
-          <ChevronRightIcon className="h-3.5 w-3.5" />
+          <ChevronRight className="h-3.5 w-3.5" />
         </span>
       </button>
 
@@ -206,7 +206,7 @@ export default function CreateWorkspaceCard() {
                     className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/15"
                   />
                   {color === c ? (
-                    <CheckIcon
+                    <Check
                       aria-hidden
                       className="relative h-3.5 w-3.5 text-white drop-shadow-sm"
                     />

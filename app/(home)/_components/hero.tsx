@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { buttonClasses } from "@/components/button";
-import { ArrowRightIcon } from "@/components/icons";
+import { ArrowRight } from "lucide-react";
 
 const pipeline = [
   {
@@ -90,7 +90,7 @@ export default function Hero() {
               })}
             >
               Start your workspace
-              <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <a
               href="#features"

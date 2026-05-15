@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Eyebrow from "@/components/eyebrow";
-import { CheckIcon } from "@/components/icons";
+import { Check } from "lucide-react";
 
 type Feature = {
   title: string;
@@ -228,11 +228,11 @@ function TeamVisual() {
         </p>
         <ul className="mt-2 space-y-1 text-[11px] text-zinc-700 dark:text-zinc-300">
           <li className="flex items-center gap-1.5">
-            <CheckIcon className="h-3 w-3 text-emerald-500" />
+            <Check className="h-3 w-3 text-emerald-500" />
             SSO &amp; SAML
           </li>
           <li className="flex items-center gap-1.5">
-            <CheckIcon className="h-3 w-3 text-emerald-500" />
+            <Check className="h-3 w-3 text-emerald-500" />
             Audit logs
           </li>
         </ul>

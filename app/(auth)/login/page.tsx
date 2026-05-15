@@ -1,31 +1,32 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import Logo from "@/components/logo";
 import Eyebrow from "@/components/eyebrow";
 import { Check } from "lucide-react";
-import SignupForm from "./_components/signup-form";
+import LoginForm from "./_components/login-form";
 
 export const metadata: Metadata = {
-  title: "Sign up — WSS CRM",
-  description: "Create your sales workspace in seconds. Free during beta.",
+  title: "Sign in — WSS CRM",
+  description: "Sign in to your sales workspace.",
 };
 
-const benefits = [
+const highlights = [
   {
-    title: "Built for sales",
-    body: "Pipelines, contacts, and follow-ups — designed around how teams actually sell.",
+    title: "Pick up where you left off",
+    body: "Pipelines, contacts, and follow-ups — exactly as you left them.",
   },
   {
-    title: "Set up in under a minute",
-    body: "Pick a starting template, invite teammates, import contacts — done.",
+    title: "Switch between workspaces",
+    body: "One sign-in for every team you're part of.",
   },
   {
-    title: "Free during beta",
-    body: "No credit card required. Bring your data and try it end-to-end.",
+    title: "Real-time sync",
+    body: "Updates land instantly across desktop, mobile, and your team.",
   },
 ];
 
-export default function SignupPage() {
+export default function LoginPage() {
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
       <aside className="relative hidden overflow-hidden border-r border-zinc-200 bg-zinc-50/60 lg:flex lg:w-[45%] lg:flex-col lg:justify-between dark:border-zinc-800 dark:bg-zinc-950">
@@ -53,28 +54,28 @@ export default function SignupPage() {
         </div>
 
         <div className="px-12">
-          <Eyebrow>Start your trial</Eyebrow>
+          <Eyebrow>Welcome back</Eyebrow>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-white">
-            Run your sales pipeline.{" "}
-            <span className="text-primary">Not your CRM.</span>
+            Your workspace is{" "}
+            <span className="text-primary">right where you left it.</span>
           </h2>
           <p className="mt-4 max-w-md text-balance text-zinc-600 dark:text-zinc-400">
-            Spin up a workspace, drop in your team and contacts, and start closing — all
-            in one focused tool.
+            Sign in to keep deals moving, follow up with leads, and stay in
+            sync with your team.
           </p>
 
           <ul className="mt-10 space-y-5">
-            {benefits.map((b) => (
-              <li key={b.title} className="flex items-start gap-3">
+            {highlights.map((h) => (
+              <li key={h.title} className="flex items-start gap-3">
                 <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-primary/10 text-primary ring-1 ring-inset ring-primary/20">
                   <Check className="h-3.5 w-3.5" />
                 </span>
                 <div>
                   <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                    {b.title}
+                    {h.title}
                   </p>
                   <p className="mt-0.5 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-                    {b.body}
+                    {h.body}
                   </p>
                 </div>
               </li>
@@ -86,18 +87,18 @@ export default function SignupPage() {
           <div className="rounded-xl border border-zinc-200 bg-white/80 p-5 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
             <div className="flex items-start gap-3">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-semibold text-white">
-                JD
+                MR
               </span>
               <div>
                 <p className="text-sm leading-6 text-zinc-700 dark:text-zinc-300">
-                  &ldquo;We replaced our legacy CRM in two days. The team actually uses
-                  this one — that&apos;s the whole game.&rdquo;
+                  &ldquo;Our reps log in once and everything is in front of
+                  them. No more chasing context across tabs.&rdquo;
                 </p>
                 <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    Jane Doe
+                    Mira Reyes
                   </span>{" "}
-                  · Head of Sales, Acme Co.
+                  · VP Revenue, Northwind
                 </p>
               </div>
             </div>
@@ -113,20 +114,22 @@ export default function SignupPage() {
 
           <div className="mt-8 lg:mt-0">
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-white">
-              Create your account
+              Sign in to WSS CRM
             </h1>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Already have one?{" "}
+              New here?{" "}
               <Link
-                href="/login"
+                href="/signup"
                 className="font-medium text-zinc-900 underline-offset-2 hover:underline dark:text-zinc-100"
               >
-                Sign in
+                Create an account
               </Link>
             </p>
           </div>
 
-          <SignupForm />
+          <Suspense>
+            <LoginForm />
+          </Suspense>
         </div>
       </main>
     </div>

@@ -4,7 +4,7 @@ import { auth, signOut } from "@/config/auth";
 import { connectDB } from "@/config/db";
 import Workspace from "@/models/workspace";
 import type { WorkspaceColor, WorkspaceMemberRole } from "@/lib/workspace";
-import { LogOutIcon } from "@/components/icons";
+import { LogOut } from "lucide-react";
 import WorkspaceCard, {
   type WorkspaceCardData,
 } from "./_components/workspace-card";
@@ -103,7 +103,7 @@ export default async function WorkspacePage() {
               {session.user.email ?? session.user.name}
             </span>
             <span className="mx-1 hidden h-3 w-px bg-zinc-200 dark:bg-white/15 sm:inline-block" />
-            <LogOutIcon className="h-3.5 w-3.5" />
+            <LogOut className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Sign out</span>
           </button>
         </form>
