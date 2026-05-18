@@ -7,6 +7,7 @@ import { requireWorkspaceAccess } from "@/lib/workspace-access";
 import { cn } from "@/lib/cn";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import AddEmployeeButton from "./_components/add-employee-button";
+import EditEmployeeButton from "./_components/edit-employee-button";
 
 const HR_PAGE_ROLES: UserRole[] = ["owner", "admin", "hr"];
 
@@ -269,6 +270,19 @@ export default async function EmployeesPage({ params }: EmployeesPageProps) {
                     <span className="hidden shrink-0 text-[11px] tabular-nums text-zinc-400 sm:inline dark:text-zinc-500">
                       Joined {formatJoined(new Date(emp.joinedAt))}
                     </span>
+
+                    {canManage ? (
+                      <EditEmployeeButton
+                        workspaceId={workspace.id}
+                        employee={{
+                          id: emp.id,
+                          name: emp.name,
+                          email: emp.email,
+                          role: emp.role,
+                        }}
+                        isSelf={emp.id === session.user.id}
+                      />
+                    ) : null}
                   </li>
                 );
               })}

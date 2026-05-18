@@ -130,3 +130,108 @@ export async function addEmployee(
   revalidatePath(`/workspace/${workspaceId}/employees`);
   return { ok: true };
 }
+
+export type UpdateEmployeeState =
+  | {
+      ok?: boolean;
+      errors?: {
+        name?: string;
+        password?: string;
+        role?: string;
+      };
+      formError?: string;
+    }
+  | undefined;
+
+export async function updateEmployee(
+  workspaceId: string,
+  employeeId: string,
+  _prev: UpdateEmployeeState,
+  formData: FormData,
+): Promise<UpdateEmployeeState> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { formError: "Your session expired. Please sign in again." };
+  }
+
+  if (
+    !mongoose.Types.ObjectId.isValid(workspaceId) ||
+    !mongoose.Types.ObjectId.isValid(employeeId)
+  ) {
+    return { formError: "Invalid identifier." };
+  }
+
+  const name = String(formData.get("name") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const roleInput = String(formData.get("role") ?? "");
+
+  const errors: NonNullable<UpdateEmployeeState>["errors"] = {};
+  if (name.length < 2) errors.name = "Please enter a name.";
+  if (!isUserRole(roleInput) || roleInput === "owner")
+    errors.role = "Please choose a valid role.";
+  if (password.length > 0 && password.length < 8)
+    errors.password = "Password must be at least 8 characters.";
+  if (Object.keys(errors).length) return { errors };
+
+  const role = roleInput as UserRole;
+
+  await connectDB();
+
+  const workspace = await Workspace.findById(workspaceId);
+  if (!workspace) return { formError: "Workspace not found." };
+
+  const isOwner = String(workspace.owner) === session.user.id;
+  const actorMembership = workspace.members?.find(
+    (m) => String(m.user) === session.user!.id,
+  );
+  const canManage =
+    isOwner ||
+    (actorMembership &&
+      (actorMembership.role === "admin" || actorMembership.role === "hr"));
+  if (!canManage) {
+    return { formError: "You don't have permission to edit employees." };
+  }
+
+  if (String(workspace.owner) === employeeId) {
+    return { formError: "The workspace owner can't be edited from this page." };
+  }
+
+  const membership = workspace.members?.find(
+    (m) => String(m.user) === employeeId,
+  );
+  if (!membership) {
+    return { formError: "This employee isn't part of the workspace." };
+  }
+
+  const isSelf = session.user.id === employeeId;
+  if (isSelf && membership.role !== role) {
+    return {
+      errors: { role: "You can't change your own role." },
+    };
+  }
+
+  const user = await User.findById(employeeId);
+  if (!user) return { formError: "User not found." };
+
+  user.name = name;
+  if (password.length >= 8) {
+    user.password = await bcrypt.hash(password, 10);
+    if (!user.providers.includes("credentials")) {
+      user.providers.push("credentials");
+    }
+  }
+
+  membership.role = role;
+
+  try {
+    await Promise.all([user.save(), workspace.save()]);
+  } catch (err) {
+    console.error("[updateEmployee] save failed", err);
+    const message =
+      err instanceof Error ? err.message : "Couldn't update the employee.";
+    return { formError: `${message} Please try again.` };
+  }
+
+  revalidatePath(`/workspace/${workspaceId}/employees`);
+  return { ok: true };
+}
