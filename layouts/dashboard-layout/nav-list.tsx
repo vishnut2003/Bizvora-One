@@ -7,13 +7,27 @@ import { navSections, type NavItem } from "./nav";
 
 export default function NavList({
   workspaceId,
+  query = "",
   onNavigate,
 }: {
   workspaceId: string;
+  query?: string;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const base = `/workspace/${workspaceId}`;
+  const normalized = query.trim().toLowerCase();
+
+  const filteredSections = normalized
+    ? navSections
+        .map((section) => ({
+          ...section,
+          items: section.items.filter((item) =>
+            item.label.toLowerCase().includes(normalized),
+          ),
+        }))
+        .filter((section) => section.items.length > 0)
+    : navSections;
 
   const renderItem = (item: NavItem) => {
     const isRoot = item.href === "" || item.href === "/";
@@ -88,9 +102,17 @@ export default function NavList({
     );
   };
 
+  if (filteredSections.length === 0) {
+    return (
+      <p className="px-2 py-6 text-center text-[12px] text-zinc-500 dark:text-zinc-400">
+        No menu items match &ldquo;{query}&rdquo;.
+      </p>
+    );
+  }
+
   return (
     <>
-      {navSections.map((section, index) => (
+      {filteredSections.map((section, index) => (
         <div key={section.heading}>
           {index > 0 ? (
             <div className="my-3 h-px bg-zinc-100 dark:bg-zinc-800" />

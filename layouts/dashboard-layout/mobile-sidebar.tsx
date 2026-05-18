@@ -10,6 +10,7 @@ const subscribe = () => () => {};
 
 export default function MobileSidebar({ workspaceId }: { workspaceId: string }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const mounted = useSyncExternalStore(
     subscribe,
     () => true,
@@ -85,7 +86,9 @@ export default function MobileSidebar({ workspaceId }: { workspaceId: string }) 
           <input
             type="search"
             placeholder="Search…"
-            aria-label="Search"
+            aria-label="Search menu"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             className="h-8 w-full rounded-md border border-zinc-200 bg-white pl-8 pr-2 text-[12.5px] text-zinc-900 placeholder:text-zinc-500 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-100 dark:placeholder:text-zinc-500 [&::-webkit-search-cancel-button]:appearance-none"
           />
         </div>
@@ -93,7 +96,11 @@ export default function MobileSidebar({ workspaceId }: { workspaceId: string }) 
         <div className="-mx-3 mt-4 min-h-0 flex-1 overflow-y-auto px-3 [scrollbar-gutter:stable] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-200 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700">
           <NavList
             workspaceId={workspaceId}
-            onNavigate={() => setOpen(false)}
+            query={query}
+            onNavigate={() => {
+              setOpen(false);
+              setQuery("");
+            }}
           />
         </div>
 
