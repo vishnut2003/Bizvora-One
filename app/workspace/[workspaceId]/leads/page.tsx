@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import mongoose, { type FilterQuery } from "mongoose";
 import Lead, {
+  LEAD_FIELD_LABEL,
   LEAD_PRIORITIES,
   LEAD_PRIORITY_BADGE_CLASS,
   LEAD_PRIORITY_LABEL,
@@ -25,6 +26,7 @@ import Lead, {
   LEAD_STAGE_LABEL,
   OPEN_LEAD_STAGES,
   type ILead,
+  type LeadActivityType,
   type LeadPriority,
   type LeadSource,
   type LeadStage,
@@ -43,6 +45,9 @@ import { timeAgo } from "@/lib/time";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import AddLeadButton from "./_components/add-lead-button";
 import EditLeadButton from "./_components/edit-lead-button";
+import HistoryButton, {
+  type HistoryEntry,
+} from "./_components/history-button";
 import LeadsToolbar from "./_components/leads-toolbar";
 import RemoveLeadButton from "./_components/remove-lead-button";
 import type {
@@ -90,6 +95,86 @@ function formatDate(date: Date): string {
 function formatDateTimeLocal(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function formatAbsoluteDateTime(date: Date): string {
+  return new Intl.DateTimeFormat("en-IN", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function resolveAssigneeName(
+  id: string | null | undefined,
+  userById: Map<string, { id: string; name: string }>,
+): string {
+  if (!id) return "Unassigned";
+  return userById.get(String(id))?.name ?? "Someone";
+}
+
+function buildActivitySummary(
+  type: LeadActivityType,
+  data: Record<string, unknown>,
+  userById: Map<string, { id: string; name: string }>,
+): string {
+  switch (type) {
+    case "created":
+      return "created the lead.";
+    case "stage_changed": {
+      const from = data.from as LeadStage | undefined;
+      const to = data.to as LeadStage | undefined;
+      const fromLabel = from ? LEAD_STAGE_LABEL[from] : "—";
+      const toLabel = to ? LEAD_STAGE_LABEL[to] : "—";
+      return `moved the lead from ${fromLabel} → ${toLabel}.`;
+    }
+    case "priority_changed": {
+      const from = data.from as LeadPriority | undefined;
+      const to = data.to as LeadPriority | undefined;
+      const fromLabel = from ? LEAD_PRIORITY_LABEL[from] : "—";
+      const toLabel = to ? LEAD_PRIORITY_LABEL[to] : "—";
+      return `changed priority from ${fromLabel} → ${toLabel}.`;
+    }
+    case "assignee_changed": {
+      const fromName = resolveAssigneeName(
+        data.from as string | null,
+        userById,
+      );
+      const toName = resolveAssigneeName(data.to as string | null, userById);
+      return `reassigned the lead from ${fromName} → ${toName}.`;
+    }
+    case "note_added":
+      return "added a note.";
+    case "follow_up_changed": {
+      const from = data.from as string | null | undefined;
+      const to = data.to as string | null | undefined;
+      const fromLabel = from ? formatDate(new Date(from)) : "—";
+      const toLabel = to ? formatDate(new Date(to)) : "—";
+      if (!from && to) return `set the follow-up to ${toLabel}.`;
+      if (from && !to) return "cleared the follow-up.";
+      return `moved follow-up from ${fromLabel} → ${toLabel}.`;
+    }
+    case "tags_changed": {
+      const added = (data.added as string[] | undefined) ?? [];
+      const removed = (data.removed as string[] | undefined) ?? [];
+      const parts: string[] = [];
+      if (added.length) parts.push(`added ${added.join(", ")}`);
+      if (removed.length) parts.push(`removed ${removed.join(", ")}`);
+      return `${parts.join(" · ") || "updated tags"}.`;
+    }
+    case "details_updated": {
+      const fields = ((data.fields as string[] | undefined) ?? []).map(
+        (f) => LEAD_FIELD_LABEL[f] ?? f,
+      );
+      if (fields.length === 0) return "updated details.";
+      if (fields.length === 1) return `updated ${fields[0]}.`;
+      if (fields.length === 2) return `updated ${fields[0]} and ${fields[1]}.`;
+      const last = fields[fields.length - 1];
+      return `updated ${fields.slice(0, -1).join(", ")}, and ${last}.`;
+    }
+  }
 }
 
 function formatMoney(value: number): string {
@@ -701,6 +786,36 @@ export default async function LeadsPage({
                     };
                   });
 
+                const historyEntries: HistoryEntry[] = (lead.activity ?? [])
+                  .slice()
+                  .sort(
+                    (a, b) =>
+                      new Date(b.at as Date).getTime() -
+                      new Date(a.at as Date).getTime(),
+                  )
+                  .map((a, idx) => {
+                    const actor = userById.get(String(a.actor));
+                    const actorName = actor?.name ?? "Someone";
+                    const type = a.type as LeadActivityType;
+                    const data =
+                      (a.data as Record<string, unknown> | undefined) ?? {};
+                    const at = new Date(a.at as Date);
+                    return {
+                      id: `${leadId}-act-${idx}`,
+                      type,
+                      actorName,
+                      actorInitial:
+                        actorName.trim().charAt(0).toUpperCase() || "?",
+                      at: timeAgo(at),
+                      atAbs: formatAbsoluteDateTime(at),
+                      summary: buildActivitySummary(type, data, userById),
+                      body:
+                        type === "note_added"
+                          ? (data.body as string | undefined)
+                          : undefined,
+                    };
+                  });
+
                 return (
                   <li
                     key={leadId}
@@ -881,27 +996,33 @@ export default async function LeadsPage({
                         ) : null}
                       </div>
 
-                      {canEdit ? (
-                        <div className="flex items-center gap-1.5">
-                          <EditLeadButton
-                            workspaceId={workspace.id}
-                            leadId={leadId}
-                            leadName={lead.name}
-                            defaults={defaultsForEdit}
-                            notes={notesForEdit}
-                            members={assignableMembers}
-                            currentUserId={session.user.id}
-                            actorRole={myRole}
-                          />
-                          {fullManager ? (
-                            <RemoveLeadButton
+                      <div className="flex items-center gap-1.5">
+                        <HistoryButton
+                          leadName={lead.name}
+                          entries={historyEntries}
+                        />
+                        {canEdit ? (
+                          <>
+                            <EditLeadButton
                               workspaceId={workspace.id}
                               leadId={leadId}
                               leadName={lead.name}
+                              defaults={defaultsForEdit}
+                              notes={notesForEdit}
+                              members={assignableMembers}
+                              currentUserId={session.user.id}
+                              actorRole={myRole}
                             />
-                          ) : null}
-                        </div>
-                      ) : null}
+                            {fullManager ? (
+                              <RemoveLeadButton
+                                workspaceId={workspace.id}
+                                leadId={leadId}
+                                leadName={lead.name}
+                              />
+                            ) : null}
+                          </>
+                        ) : null}
+                      </div>
                     </div>
                   </li>
                 );

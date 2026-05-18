@@ -8,6 +8,7 @@ import Lead, {
   LEAD_PRIORITIES,
   LEAD_SOURCES,
   LEAD_STAGES,
+  type LeadActivityType,
   type LeadPriority,
   type LeadSource,
   type LeadStage,
@@ -21,6 +22,27 @@ import {
 import { getActorRole } from "@/lib/workspace-access";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type ActivityEvent = {
+  type: LeadActivityType;
+  actor: mongoose.Types.ObjectId;
+  at: Date;
+  data: Record<string, unknown>;
+};
+
+function makeEvent(
+  type: LeadActivityType,
+  actorId: string,
+  at: Date,
+  data: Record<string, unknown> = {},
+): ActivityEvent {
+  return {
+    type,
+    actor: new mongoose.Types.ObjectId(actorId),
+    at,
+    data,
+  };
+}
 
 export type LeadFormErrors = Partial<
   Record<
@@ -252,6 +274,15 @@ export async function createLead(
     ? [{ body: data.noteBody, author: session.user.id, createdAt: now }]
     : [];
 
+  const activity: ActivityEvent[] = [
+    makeEvent("created", session.user.id, now, { stage: data.stage }),
+  ];
+  if (data.noteBody) {
+    activity.push(
+      makeEvent("note_added", session.user.id, now, { body: data.noteBody }),
+    );
+  }
+
   try {
     await Lead.create({
       workspace: workspaceId,
@@ -270,14 +301,7 @@ export async function createLead(
       createdBy: session.user.id,
       tags: data.tags,
       notes,
-      stageHistory: [
-        {
-          stage: data.stage,
-          changedBy: session.user.id,
-          changedAt: now,
-          note: "Lead created",
-        },
-      ],
+      activity,
       nextFollowUpAt: data.nextFollowUpAt,
       lastContactedAt: null,
       wonAt,
@@ -353,7 +377,31 @@ export async function updateLead(
   }
 
   const now = new Date();
-  const stageChanged = lead.stage !== data.stage;
+
+  // Snapshot the pre-mutation state so we can diff and emit activity events.
+  const before = {
+    name: lead.name,
+    email: lead.email ?? "",
+    phone: lead.phone ?? "",
+    company: lead.company ?? "",
+    jobTitle: lead.jobTitle ?? "",
+    website: lead.website ?? "",
+    city: lead.address?.city ?? "",
+    state: lead.address?.state ?? "",
+    country: lead.address?.country ?? "",
+    stage: lead.stage as LeadStage,
+    source: lead.source as LeadSource,
+    priority: lead.priority as LeadPriority,
+    estimatedValue: lead.estimatedValue ?? 0,
+    assignedTo: currentAssignee,
+    tags: [...(lead.tags ?? [])],
+    nextFollowUpAt: lead.nextFollowUpAt
+      ? new Date(lead.nextFollowUpAt).toISOString()
+      : null,
+    lostReason: lead.lostReason ?? "",
+  };
+
+  const stageChanged = before.stage !== data.stage;
 
   lead.name = data.name;
   lead.email = data.email || null;
@@ -378,18 +426,88 @@ export async function updateLead(
   lead.lostReason = data.stage === "lost" ? data.lostReason : "";
 
   if (stageChanged) {
-    lead.stageHistory.push({
-      stage: data.stage,
-      changedBy: new mongoose.Types.ObjectId(
-        session.user.id,
-      ) as unknown as (typeof lead.stageHistory)[number]["changedBy"],
-      changedAt: now,
-      note: "",
-    });
     if (data.stage === "won") lead.wonAt = now;
     if (data.stage === "lost") lead.lostAt = now;
     if (data.stage !== "won") lead.wonAt = null;
     if (data.stage !== "lost") lead.lostAt = null;
+  }
+
+  // Build the activity events for everything that actually changed.
+  const events: ActivityEvent[] = [];
+  if (stageChanged) {
+    events.push(
+      makeEvent("stage_changed", session.user.id, now, {
+        from: before.stage,
+        to: data.stage,
+      }),
+    );
+  }
+  if (before.priority !== data.priority) {
+    events.push(
+      makeEvent("priority_changed", session.user.id, now, {
+        from: before.priority,
+        to: data.priority,
+      }),
+    );
+  }
+  if (before.assignedTo !== data.assignedTo) {
+    events.push(
+      makeEvent("assignee_changed", session.user.id, now, {
+        from: before.assignedTo,
+        to: data.assignedTo,
+      }),
+    );
+  }
+  const newFollowUpIso = data.nextFollowUpAt
+    ? data.nextFollowUpAt.toISOString()
+    : null;
+  if (before.nextFollowUpAt !== newFollowUpIso) {
+    events.push(
+      makeEvent("follow_up_changed", session.user.id, now, {
+        from: before.nextFollowUpAt,
+        to: newFollowUpIso,
+      }),
+    );
+  }
+  const beforeTagSet = new Set(before.tags);
+  const afterTagSet = new Set(data.tags);
+  const tagsAdded = data.tags.filter((t) => !beforeTagSet.has(t));
+  const tagsRemoved = before.tags.filter((t) => !afterTagSet.has(t));
+  if (tagsAdded.length || tagsRemoved.length) {
+    events.push(
+      makeEvent("tags_changed", session.user.id, now, {
+        added: tagsAdded,
+        removed: tagsRemoved,
+      }),
+    );
+  }
+  const detailDiffs: Array<{ key: string; old: unknown; next: unknown }> = [
+    { key: "name", old: before.name, next: data.name },
+    { key: "email", old: before.email, next: data.email },
+    { key: "phone", old: before.phone, next: data.phone },
+    { key: "company", old: before.company, next: data.company },
+    { key: "jobTitle", old: before.jobTitle, next: data.jobTitle },
+    { key: "website", old: before.website, next: data.website },
+    { key: "source", old: before.source, next: data.source },
+    { key: "estimatedValue", old: before.estimatedValue, next: data.estimatedValue },
+    { key: "city", old: before.city, next: data.city },
+    { key: "state", old: before.state, next: data.state },
+    { key: "country", old: before.country, next: data.country },
+    {
+      key: "lostReason",
+      old: before.lostReason,
+      next: data.stage === "lost" ? data.lostReason : "",
+    },
+  ];
+  const changedFields = detailDiffs
+    .filter((d) => d.old !== d.next)
+    .map((d) => d.key);
+  if (changedFields.length) {
+    events.push(
+      makeEvent("details_updated", session.user.id, now, {
+        fields: changedFields,
+      }),
+    );
   }
 
   if (data.noteBody) {
@@ -401,6 +519,15 @@ export async function updateLead(
       createdAt: now,
     });
     lead.lastContactedAt = now;
+    events.push(
+      makeEvent("note_added", session.user.id, now, { body: data.noteBody }),
+    );
+  }
+
+  if (events.length) {
+    lead.activity.push(
+      ...(events as unknown as (typeof lead.activity)[number][]),
+    );
   }
 
   try {

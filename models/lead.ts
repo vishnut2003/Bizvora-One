@@ -1,7 +1,15 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
-import { LEAD_STAGES, LEAD_SOURCES, LEAD_PRIORITIES } from "@/lib/lead";
+import {
+  LEAD_ACTIVITY_TYPES,
+  LEAD_PRIORITIES,
+  LEAD_SOURCES,
+  LEAD_STAGES,
+} from "@/lib/lead";
 
 export {
+  LEAD_ACTIVITY_TYPES,
+  LEAD_ACTIVITY_LABEL,
+  LEAD_FIELD_LABEL,
   LEAD_STAGES,
   LEAD_SOURCES,
   LEAD_PRIORITIES,
@@ -11,6 +19,7 @@ export {
   LEAD_STAGE_BADGE_CLASS,
   LEAD_PRIORITY_BADGE_CLASS,
   OPEN_LEAD_STAGES,
+  type LeadActivityType,
   type LeadStage,
   type LeadSource,
   type LeadPriority,
@@ -25,12 +34,12 @@ const noteSchema = new Schema(
   { _id: true },
 );
 
-const stageHistorySchema = new Schema(
+const activitySchema = new Schema(
   {
-    stage: { type: String, enum: LEAD_STAGES, required: true },
-    changedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    changedAt: { type: Date, default: Date.now, required: true },
-    note: { type: String, trim: true, maxlength: 280, default: "" },
+    type: { type: String, enum: LEAD_ACTIVITY_TYPES, required: true },
+    actor: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    at: { type: Date, default: Date.now, required: true },
+    data: { type: Schema.Types.Mixed, default: {} },
   },
   { _id: false },
 );
@@ -96,7 +105,7 @@ const leadSchema = new Schema(
       default: [],
     },
     notes: { type: [noteSchema], default: [] },
-    stageHistory: { type: [stageHistorySchema], default: [] },
+    activity: { type: [activitySchema], default: [] },
     nextFollowUpAt: { type: Date, default: null, index: true },
     lastContactedAt: { type: Date, default: null },
     wonAt: { type: Date, default: null },

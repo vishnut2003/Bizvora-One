@@ -99,6 +99,45 @@ export const LEAD_PRIORITY_BADGE_CLASS: Record<LeadPriority, string> = {
     "bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-500/25",
 };
 
+export const LEAD_ACTIVITY_TYPES = [
+  "created",
+  "stage_changed",
+  "priority_changed",
+  "assignee_changed",
+  "note_added",
+  "follow_up_changed",
+  "tags_changed",
+  "details_updated",
+] as const;
+export type LeadActivityType = (typeof LEAD_ACTIVITY_TYPES)[number];
+
+export const LEAD_ACTIVITY_LABEL: Record<LeadActivityType, string> = {
+  created: "Lead created",
+  stage_changed: "Stage changed",
+  priority_changed: "Priority changed",
+  assignee_changed: "Reassigned",
+  note_added: "Note added",
+  follow_up_changed: "Follow-up updated",
+  tags_changed: "Tags updated",
+  details_updated: "Details updated",
+};
+
+// Human labels for the field keys emitted by the `details_updated` event.
+export const LEAD_FIELD_LABEL: Record<string, string> = {
+  name: "name",
+  email: "email",
+  phone: "phone",
+  company: "company",
+  jobTitle: "job title",
+  website: "website",
+  source: "source",
+  estimatedValue: "value",
+  city: "city",
+  state: "state",
+  country: "country",
+  lostReason: "lost reason",
+};
+
 export const LEAD_VIEWER_ROLES: UserRole[] = [
   "owner",
   "admin",
