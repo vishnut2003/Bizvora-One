@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { WorkspaceColor } from "@/lib/workspace";
-import type { UserRole } from "@/models/user";
+import type { UserRole } from "@/lib/user";
 import Header from "./header";
 import Sidebar from "./sidebar";
 
@@ -28,7 +28,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <Header user={user} workspace={workspace} />
       <div className="flex flex-1">
-        <Sidebar workspaceId={workspace.id} />
+        <Sidebar workspaceId={workspace.id} role={workspace.role} />
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>

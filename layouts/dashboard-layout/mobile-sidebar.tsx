@@ -4,11 +4,18 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Menu, Search, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import type { UserRole } from "@/lib/user";
 import NavList from "./nav-list";
 
 const subscribe = () => () => {};
 
-export default function MobileSidebar({ workspaceId }: { workspaceId: string }) {
+export default function MobileSidebar({
+  workspaceId,
+  role,
+}: {
+  workspaceId: string;
+  role: UserRole;
+}) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const mounted = useSyncExternalStore(
@@ -96,6 +103,7 @@ export default function MobileSidebar({ workspaceId }: { workspaceId: string }) 
         <div className="-mx-3 mt-4 min-h-0 flex-1 overflow-y-auto px-3 [scrollbar-gutter:stable] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-200 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700">
           <NavList
             workspaceId={workspaceId}
+            role={role}
             query={query}
             onNavigate={() => {
               setOpen(false);

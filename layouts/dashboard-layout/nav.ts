@@ -15,6 +15,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import type { UserRole } from "@/lib/user";
 
 export type NavItem = {
   href: string;
@@ -26,6 +27,7 @@ export type NavItem = {
 export type NavSection = {
   heading: string;
   items: NavItem[];
+  restrictedTo?: UserRole[];
 };
 
 export const navSections: NavSection[] = [
@@ -69,5 +71,6 @@ export const navSections: NavSection[] = [
   {
     heading: "For HR",
     items: [{ href: "/employees", label: "Employees", icon: IdCard }],
+    restrictedTo: ["owner", "admin", "hr"],
   },
 ];

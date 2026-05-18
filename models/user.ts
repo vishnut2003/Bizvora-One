@@ -1,19 +1,16 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
+import {
+  AUTH_PROVIDERS,
+  USER_ROLES,
+  type AuthProvider,
+} from "@/lib/user";
 
-export const USER_ROLES = [
-  "owner",
-  "admin",
-  "sales_manager",
-  "sales_executive",
-  "accounts",
-  "hr",
-] as const;
-
-export type UserRole = (typeof USER_ROLES)[number];
-
-export const AUTH_PROVIDERS = ["credentials", "google"] as const;
-
-export type AuthProvider = (typeof AUTH_PROVIDERS)[number];
+export {
+  AUTH_PROVIDERS,
+  USER_ROLES,
+  type AuthProvider,
+  type UserRole,
+} from "@/lib/user";
 
 const userSchema = new Schema(
   {
@@ -53,8 +50,12 @@ const userSchema = new Schema(
 
 export type IUser = InferSchemaType<typeof userSchema>;
 
+if (process.env.NODE_ENV !== "production" && mongoose.models.User) {
+  mongoose.deleteModel("User");
+}
+
 const User: Model<IUser> =
-  (mongoose.models.User as Model<IUser>) ||
+  (mongoose.models.User as Model<IUser> | undefined) ??
   mongoose.model<IUser>("User", userSchema);
 
 export default User;

@@ -3,6 +3,7 @@ import { Bell, ChevronRight, LogOut } from "lucide-react";
 import { signOut } from "@/config/auth";
 import { cn } from "@/lib/cn";
 import type { WorkspaceColor } from "@/lib/workspace";
+import type { UserRole } from "@/lib/user";
 import MobileSidebar from "./mobile-sidebar";
 
 const swatch: Record<WorkspaceColor, string> = {
@@ -24,6 +25,7 @@ type HeaderProps = {
     id: string;
     name: string;
     color: WorkspaceColor;
+    role: UserRole;
   };
 };
 
@@ -39,7 +41,7 @@ export default function Header({ user, workspace }: HeaderProps) {
       />
       <div className="flex h-full items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <MobileSidebar workspaceId={workspace.id} />
+          <MobileSidebar workspaceId={workspace.id} role={workspace.role} />
           <Link
             href="/"
             className="flex shrink-0 items-baseline text-[15px] font-bold tracking-tight"

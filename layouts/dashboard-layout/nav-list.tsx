@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
+import type { UserRole } from "@/lib/user";
 import { navSections, type NavItem } from "./nav";
 
 export default function NavList({
   workspaceId,
+  role,
   query = "",
   onNavigate,
 }: {
   workspaceId: string;
+  role: UserRole;
   query?: string;
   onNavigate?: () => void;
 }) {
@@ -18,8 +21,12 @@ export default function NavList({
   const base = `/workspace/${workspaceId}`;
   const normalized = query.trim().toLowerCase();
 
+  const visibleSections = navSections.filter(
+    (section) => !section.restrictedTo || section.restrictedTo.includes(role),
+  );
+
   const filteredSections = normalized
-    ? navSections
+    ? visibleSections
         .map((section) => ({
           ...section,
           items: section.items.filter((item) =>
@@ -27,7 +34,7 @@ export default function NavList({
           ),
         }))
         .filter((section) => section.items.length > 0)
-    : navSections;
+    : visibleSections;
 
   const renderItem = (item: NavItem) => {
     const isRoot = item.href === "" || item.href === "/";

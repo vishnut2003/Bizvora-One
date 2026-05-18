@@ -2,9 +2,16 @@
 
 import { useState } from "react";
 import { Search, Sparkles } from "lucide-react";
+import type { UserRole } from "@/lib/user";
 import NavList from "./nav-list";
 
-export default function Sidebar({ workspaceId }: { workspaceId: string }) {
+export default function Sidebar({
+  workspaceId,
+  role,
+}: {
+  workspaceId: string;
+  role: UserRole;
+}) {
   const [query, setQuery] = useState("");
 
   return (
@@ -28,7 +35,7 @@ export default function Sidebar({ workspaceId }: { workspaceId: string }) {
       </div>
 
       <div className="-mx-3 mt-5 min-h-0 flex-1 overflow-y-auto px-3 [scrollbar-gutter:stable] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-200 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700">
-        <NavList workspaceId={workspaceId} query={query} />
+        <NavList workspaceId={workspaceId} role={role} query={query} />
       </div>
 
       <div className="shrink-0 pt-3">

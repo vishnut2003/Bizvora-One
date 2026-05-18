@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
-import mongoose from "mongoose";
 import {
   ArrowUpRight,
   Briefcase,
@@ -9,11 +7,8 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { auth } from "@/config/auth";
-import { connectDB } from "@/config/db";
-import Workspace from "@/models/workspace";
 import type { WorkspaceColor } from "@/lib/workspace";
-import type { UserRole } from "@/models/user";
+import { requireWorkspaceAccess } from "@/lib/workspace-access";
 import DashboardLayout from "@/layouts/dashboard-layout";
 
 export const metadata: Metadata = {
@@ -102,31 +97,9 @@ export default async function WorkspaceDetailPage({
 }: WorkspaceDetailPageProps) {
   const { workspaceId } = await params;
 
-  if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
-    notFound();
-  }
-
-  const session = await auth();
-  if (!session?.user?.id) redirect("/login");
-
-  await connectDB();
-  const doc = await Workspace.findOne({
-    _id: workspaceId,
-    $or: [
-      { owner: session.user.id },
-      { "members.user": session.user.id },
-    ],
-  }).lean();
-
-  if (!doc) notFound();
-
-  const isOwner = String(doc.owner) === session.user.id;
-  const membership = doc.members?.find(
-    (m) => String(m.user) === session.user.id,
-  );
-  const role: UserRole = isOwner
-    ? "owner"
-    : (membership?.role ?? "sales_executive");
+  const { session, workspace: doc, role } = await requireWorkspaceAccess({
+    workspaceId,
+  });
 
   const workspace = {
     id: String(doc._id),

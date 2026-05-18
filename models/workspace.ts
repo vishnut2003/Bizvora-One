@@ -40,8 +40,12 @@ workspaceSchema.index({ "members.user": 1 });
 
 export type IWorkspace = InferSchemaType<typeof workspaceSchema>;
 
+if (process.env.NODE_ENV !== "production" && mongoose.models.Workspace) {
+  mongoose.deleteModel("Workspace");
+}
+
 const Workspace: Model<IWorkspace> =
-  (mongoose.models.Workspace as Model<IWorkspace>) ||
+  (mongoose.models.Workspace as Model<IWorkspace> | undefined) ??
   mongoose.model<IWorkspace>("Workspace", workspaceSchema);
 
 export default Workspace;
