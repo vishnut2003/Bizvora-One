@@ -3,6 +3,7 @@ import { Bell, ChevronRight, LogOut } from "lucide-react";
 import { signOut } from "@/config/auth";
 import { cn } from "@/lib/cn";
 import type { WorkspaceColor } from "@/lib/workspace";
+import MobileSidebar from "./mobile-sidebar";
 
 const swatch: Record<WorkspaceColor, string> = {
   violet: "bg-gradient-to-br from-violet-500 to-purple-700",
@@ -20,6 +21,7 @@ type HeaderProps = {
     image?: string | null;
   };
   workspace: {
+    id: string;
     name: string;
     color: WorkspaceColor;
   };
@@ -35,11 +37,12 @@ export default function Header({ user, workspace }: HeaderProps) {
         aria-hidden
         className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"
       />
-      <div className="flex h-full items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-3">
+      <div className="flex h-full items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <MobileSidebar workspaceId={workspace.id} />
           <Link
             href="/"
-            className="flex items-baseline text-[15px] font-bold tracking-tight"
+            className="flex shrink-0 items-baseline text-[15px] font-bold tracking-tight"
           >
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               WSS
@@ -51,20 +54,20 @@ export default function Header({ user, workspace }: HeaderProps) {
             />
           </Link>
 
-          <span className="h-5 w-px bg-zinc-200 dark:bg-zinc-800" />
+          <span className="h-5 w-px shrink-0 bg-zinc-200 dark:bg-zinc-800" />
 
           <nav
             aria-label="Breadcrumb"
-            className="flex items-center gap-1.5 text-[13px]"
+            className="flex min-w-0 items-center gap-1.5 text-[13px]"
           >
             <Link
               href="/workspace"
-              className="text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              className="hidden text-zinc-500 transition-colors hover:text-zinc-900 sm:inline dark:text-zinc-400 dark:hover:text-white"
             >
               Workspaces
             </Link>
-            <ChevronRight className="h-3.5 w-3.5 text-zinc-300 dark:text-zinc-600" />
-            <span className="flex items-center gap-2">
+            <ChevronRight className="hidden h-3.5 w-3.5 text-zinc-300 sm:inline dark:text-zinc-600" />
+            <span className="flex min-w-0 items-center gap-2">
               <span
                 className={cn(
                   "relative grid h-5 w-5 shrink-0 place-items-center overflow-hidden rounded-[5px] text-[10px] font-semibold text-white shadow-sm shadow-black/10",
@@ -81,14 +84,14 @@ export default function Header({ user, workspace }: HeaderProps) {
                 />
                 <span className="relative">{initial}</span>
               </span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              <span className="truncate font-semibold text-zinc-900 dark:text-zinc-100">
                 {workspace.name}
               </span>
             </span>
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             aria-label="Notifications"

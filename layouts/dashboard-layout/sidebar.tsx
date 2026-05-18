@@ -1,117 +1,10 @@
-"use client";
-
-import type { ComponentType, SVGProps } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  BarChart3,
-  Briefcase,
-  LayoutDashboard,
-  ListChecks,
-  Search,
-  Settings,
-  Sparkles,
-  Users,
-} from "lucide-react";
-import { cn } from "@/lib/cn";
-
-type NavItem = {
-  href: string;
-  label: string;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
-  badge?: string;
-};
-
-const primaryNav: NavItem[] = [
-  { href: "", label: "Overview", icon: LayoutDashboard },
-  { href: "/contacts", label: "Contacts", icon: Users },
-  { href: "/deals", label: "Deals", icon: Briefcase, badge: "9" },
-  { href: "/pipelines", label: "Pipelines", icon: ListChecks },
-  { href: "/reports", label: "Reports", icon: BarChart3 },
-];
-
-const secondaryNav: NavItem[] = [
-  { href: "/team", label: "Team", icon: Users },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+import { Search, Sparkles } from "lucide-react";
+import NavList from "./nav-list";
 
 export default function Sidebar({ workspaceId }: { workspaceId: string }) {
-  const pathname = usePathname();
-  const base = `/workspace/${workspaceId}`;
-
-  const renderItem = (item: NavItem) => {
-    const href = base + item.href;
-    const isActive =
-      item.href === "" ? pathname === href : pathname.startsWith(href);
-    const Icon = item.icon;
-
-    return (
-      <Link
-        key={item.label}
-        href={href}
-        aria-current={isActive ? "page" : undefined}
-        className={cn(
-          "group relative flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-all",
-          isActive
-            ? "bg-gradient-to-r from-primary/[0.08] via-primary/[0.03] to-transparent dark:from-primary/[0.14] dark:via-primary/[0.05]"
-            : "hover:bg-zinc-100/70 dark:hover:bg-zinc-800/40",
-        )}
-      >
-        {isActive ? (
-          <span
-            aria-hidden
-            className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-gradient-to-b from-primary to-secondary"
-          />
-        ) : null}
-
-        {isActive ? (
-          <span className="relative grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-md bg-gradient-to-br from-primary to-secondary text-white shadow-sm shadow-primary/30">
-            <span
-              aria-hidden
-              className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent"
-            />
-            <span
-              aria-hidden
-              className="absolute inset-0 ring-1 ring-inset ring-white/15"
-            />
-            <Icon className="relative h-3.5 w-3.5" />
-          </span>
-        ) : (
-          <span className="grid h-7 w-7 shrink-0 place-items-center text-zinc-400 transition-colors group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-200">
-            <Icon className="h-4 w-4" />
-          </span>
-        )}
-
-        <span
-          className={cn(
-            "flex-1 truncate text-[13px] transition-colors",
-            isActive
-              ? "font-semibold text-zinc-900 dark:text-white"
-              : "font-medium text-zinc-600 group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-white",
-          )}
-        >
-          {item.label}
-        </span>
-
-        {item.badge ? (
-          <span
-            className={cn(
-              "shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums transition-all",
-              isActive
-                ? "bg-white text-primary shadow-sm ring-1 ring-primary/15 dark:bg-zinc-900 dark:ring-primary/25"
-                : "bg-zinc-100 text-zinc-500 group-hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-zinc-700",
-            )}
-          >
-            {item.badge}
-          </span>
-        ) : null}
-      </Link>
-    );
-  };
-
   return (
     <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 border-r border-zinc-200 bg-white/40 px-3 py-4 backdrop-blur-sm lg:flex lg:flex-col dark:border-zinc-800 dark:bg-zinc-900/30">
-      <div className="relative">
+      <div className="relative shrink-0">
         <Search
           aria-hidden
           className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500"
@@ -127,19 +20,11 @@ export default function Sidebar({ workspaceId }: { workspaceId: string }) {
         </kbd>
       </div>
 
-      <p className="mt-5 px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
-        Workspace
-      </p>
-      <nav className="space-y-0.5">{primaryNav.map(renderItem)}</nav>
+      <div className="-mx-3 mt-5 min-h-0 flex-1 overflow-y-auto px-3 [scrollbar-gutter:stable] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-200 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700">
+        <NavList workspaceId={workspaceId} />
+      </div>
 
-      <div className="my-4 h-px bg-zinc-100 dark:bg-zinc-800" />
-
-      <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
-        Manage
-      </p>
-      <nav className="space-y-0.5">{secondaryNav.map(renderItem)}</nav>
-
-      <div className="mt-auto">
+      <div className="shrink-0 pt-3">
         <div className="relative overflow-hidden rounded-lg border border-zinc-200 bg-gradient-to-br from-white via-white to-primary/5 p-3 dark:border-zinc-800 dark:from-zinc-900 dark:via-zinc-900 dark:to-primary/10">
           <div
             aria-hidden
