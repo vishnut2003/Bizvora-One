@@ -47,6 +47,7 @@ const roleLabel: Record<UserRole, string> = {
   sales_manager: "Sales Manager",
   sales_executive: "Sales Executive",
   accounts: "Accounts",
+  hr: "HR",
 };
 
 const roleStyle: Record<UserRole, string> = {
@@ -60,6 +61,8 @@ const roleStyle: Record<UserRole, string> = {
     "bg-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/25",
   accounts:
     "bg-amber-100 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/25",
+  hr:
+    "bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-500/25",
 };
 
 export default function WorkspaceCard({
