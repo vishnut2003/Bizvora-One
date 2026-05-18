@@ -43,6 +43,7 @@ export const navSections: NavSection[] = [
       { href: "/proposals", label: "Proposals", icon: FileText },
       { href: "/quotations", label: "Quotations", icon: FileSpreadsheet },
     ],
+    restrictedTo: ["owner", "admin", "sales_manager", "sales_executive"],
   },
   {
     heading: "Accounts",
@@ -63,6 +64,7 @@ export const navSections: NavSection[] = [
       },
       { href: "/payments", label: "Payments", icon: CreditCard },
     ],
+    restrictedTo: ["owner", "admin", "sales_manager", "accounts"],
   },
   {
     heading: "Human Resource",
