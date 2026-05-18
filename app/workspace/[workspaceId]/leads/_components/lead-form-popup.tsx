@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   MessageSquare,
   Pencil,
@@ -194,13 +194,23 @@ export default function LeadFormPopup({
     v: LeadFormDefaults[K],
   ) => setValues((prev) => ({ ...prev, [k]: v }));
 
-  const handleOpenChange = (next: boolean) => {
-    if (!next) {
-      formRef.current?.reset();
+  // Re-seed from the latest `defaults` whenever the popup transitions from
+  // closed to open. useState's initial value only runs on mount, so without
+  // this each reopen would show whatever state the user left behind after the
+  // previous edit instead of the freshly revalidated lead data.
+  const prevOpenRef = useRef(open);
+  useEffect(() => {
+    if (open && !prevOpenRef.current) {
       setValues(defaults);
       setNoteBody("");
       setState(undefined);
+      formRef.current?.reset();
     }
+    prevOpenRef.current = open;
+  });
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) formRef.current?.reset();
     onOpenChange(next);
   };
 
