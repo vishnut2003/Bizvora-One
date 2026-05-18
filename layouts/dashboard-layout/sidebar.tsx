@@ -34,7 +34,7 @@ export default function Sidebar({
         </kbd>
       </div>
 
-      <div className="-mx-3 mt-5 min-h-0 flex-1 overflow-y-auto px-3 [scrollbar-gutter:stable] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-200 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700">
+      <div className="-mx-3 mt-5 min-h-0 flex-1 overflow-y-auto px-3 [scrollbar-gutter:stable]">
         <NavList workspaceId={workspaceId} role={role} query={query} />
       </div>
 

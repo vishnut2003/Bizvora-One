@@ -6,6 +6,13 @@ import Button from "@/components/button";
 import Input from "@/components/input";
 import Popup from "@/components/popup";
 import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/cn";
 import {
   assignableRolesFor,
@@ -177,25 +184,28 @@ export default function EditEmployeeButton({
               >
                 Role
               </label>
-              <select
-                id="edit-employee-role"
-                name="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value as UserRole)}
-                disabled={isSelf}
-                aria-invalid={state?.errors?.role ? true : undefined}
-                className={cn(
-                  "mt-2 h-10 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-900 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100",
-                  state?.errors?.role &&
-                    "border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500",
-                )}
-              >
-                {assignableRoles.map((r) => (
-                  <option key={r} value={r}>
-                    {ROLE_LABEL[r]}
-                  </option>
-                ))}
-              </select>
+              <div className="mt-2">
+                <Select
+                  value={role}
+                  onValueChange={(v) => setRole(v as UserRole)}
+                  disabled={isSelf}
+                >
+                  <SelectTrigger
+                    id="edit-employee-role"
+                    invalid={Boolean(state?.errors?.role)}
+                  >
+                    <SelectValue placeholder="Pick a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {assignableRoles.map((r) => (
+                      <SelectItem key={r} value={r}>
+                        {ROLE_LABEL[r]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <input type="hidden" name="role" value={role} />
               {isSelf ? (
                 <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-500">
                   You can&apos;t change your own role.
