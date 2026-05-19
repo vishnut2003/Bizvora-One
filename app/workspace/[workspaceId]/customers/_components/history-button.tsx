@@ -2,26 +2,24 @@
 
 import { useState } from "react";
 import {
-  ArrowRight,
-  CalendarClock,
   CircleDot,
   FileText,
   History,
   MessageSquare,
   Pencil,
+  Receipt,
   Sparkles,
   Tag as TagIcon,
-  UserCheck,
   UserCircle2,
 } from "lucide-react";
 import Popup from "@/components/popup";
 import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/cn";
-import type { LeadActivityType } from "@/lib/lead";
+import type { CustomerActivityType } from "@/lib/customer";
 
 export type HistoryEntry = {
   id: string;
-  type: LeadActivityType;
+  type: CustomerActivityType;
   actorName: string;
   actorInitial: string;
   at: string;
@@ -30,37 +28,35 @@ export type HistoryEntry = {
   body?: string;
 };
 
-const ICONS: Record<LeadActivityType, typeof Sparkles> = {
+const ICONS: Record<CustomerActivityType, typeof Sparkles> = {
   created: Sparkles,
-  stage_changed: CircleDot,
-  priority_changed: ArrowRight,
+  status_changed: CircleDot,
   assignee_changed: UserCircle2,
   note_added: MessageSquare,
-  follow_up_changed: CalendarClock,
   tags_changed: TagIcon,
   details_updated: Pencil,
-  converted_to_customer: UserCheck,
+  billing_updated: Receipt,
 };
 
-const ACCENTS: Record<LeadActivityType, string> = {
+const ACCENTS: Record<CustomerActivityType, string> = {
   created: "from-primary to-secondary",
-  stage_changed: "from-violet-500 to-fuchsia-600",
-  priority_changed: "from-amber-500 to-orange-600",
+  status_changed: "from-violet-500 to-fuchsia-600",
   assignee_changed: "from-blue-500 to-indigo-600",
   note_added: "from-emerald-500 to-teal-600",
-  follow_up_changed: "from-sky-500 to-cyan-600",
-  tags_changed: "from-zinc-500 to-zinc-700 dark:from-zinc-400 dark:to-zinc-600",
-  details_updated: "from-zinc-500 to-zinc-700 dark:from-zinc-400 dark:to-zinc-600",
-  converted_to_customer: "from-emerald-500 to-green-600",
+  tags_changed:
+    "from-zinc-500 to-zinc-700 dark:from-zinc-400 dark:to-zinc-600",
+  details_updated:
+    "from-zinc-500 to-zinc-700 dark:from-zinc-400 dark:to-zinc-600",
+  billing_updated: "from-amber-500 to-orange-600",
 };
 
 type HistoryButtonProps = {
-  leadName: string;
+  customerName: string;
   entries: HistoryEntry[];
 };
 
 export default function HistoryButton({
-  leadName,
+  customerName,
   entries,
 }: HistoryButtonProps) {
   const [open, setOpen] = useState(false);
@@ -70,7 +66,7 @@ export default function HistoryButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={`Activity history for ${leadName}`}
+        aria-label={`Activity history for ${customerName}`}
         className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-white"
       >
         <History className="h-3.5 w-3.5" />
@@ -105,7 +101,7 @@ export default function HistoryButton({
               <DialogDescription className="mt-0.5 truncate text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
                 Everything that&apos;s happened with{" "}
                 <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                  {leadName}
+                  {customerName}
                 </span>
                 .
               </DialogDescription>
@@ -123,7 +119,7 @@ export default function HistoryButton({
                 No activity recorded yet.
               </p>
               <p className="mt-1 max-w-xs text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                Edits to this lead will start showing up here.
+                Edits to this customer will start showing up here.
               </p>
             </div>
           ) : (
@@ -176,8 +172,8 @@ export default function HistoryButton({
 
         <div className="flex items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50/60 px-6 py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
           <p className="text-[11px] text-zinc-500 dark:text-zinc-500">
-            {entries.length}{" "}
-            {entries.length === 1 ? "event" : "events"} · newest first
+            {entries.length} {entries.length === 1 ? "event" : "events"} ·
+            newest first
           </p>
           <button
             type="button"

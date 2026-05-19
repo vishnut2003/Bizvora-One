@@ -1,66 +1,63 @@
 import type { Metadata } from "next";
 import {
-  AlarmClock,
+  Building2,
   CalendarClock,
-  CheckCircle2,
-  IndianRupee,
   Mail,
   Phone,
+  Receipt,
   Sparkles,
   Tag,
-  TrendingUp,
-  Trophy,
+  TrendingDown,
   UserCircle2,
   UserPlus,
+  Users,
 } from "lucide-react";
 import mongoose, { type FilterQuery } from "mongoose";
-import Lead, {
-  LEAD_FIELD_LABEL,
-  LEAD_PRIORITIES,
-  LEAD_PRIORITY_BADGE_CLASS,
-  LEAD_PRIORITY_LABEL,
+import Customer, {
+  CUSTOMER_FIELD_LABEL,
+  CUSTOMER_STATUSES,
+  CUSTOMER_STATUS_BADGE_CLASS,
+  CUSTOMER_STATUS_DOT_CLASS,
+  CUSTOMER_STATUS_LABEL,
   LEAD_SOURCES,
   LEAD_SOURCE_LABEL,
-  LEAD_STAGES,
-  LEAD_STAGE_BADGE_CLASS,
-  LEAD_STAGE_LABEL,
-  OPEN_LEAD_STAGES,
-  type ILead,
-  type LeadActivityType,
-  type LeadPriority,
+  type CustomerActivityType,
+  type CustomerStatus,
+  type ICustomer,
   type LeadSource,
-  type LeadStage,
-} from "@/models/lead";
+} from "@/models/customer";
+import Lead, { type ILead } from "@/models/lead";
 import User from "@/models/user";
 import {
-  LEAD_VIEWER_ROLES,
-  canManageAnyLead,
-  canManageLead,
-  canViewAllLeads,
-} from "@/lib/lead";
+  CUSTOMER_VIEWER_ROLES,
+  canManageAnyCustomer,
+  canManageCustomer,
+  canViewAllCustomers,
+} from "@/lib/customer";
 import type { WorkspaceColor } from "@/lib/workspace";
 import { requireWorkspaceAccess } from "@/lib/workspace-access";
 import { cn } from "@/lib/cn";
 import { timeAgo } from "@/lib/time";
 import DashboardLayout from "@/layouts/dashboard-layout";
-import AddLeadButton from "./_components/add-lead-button";
-import EditLeadButton from "./_components/edit-lead-button";
+import AddCustomerButton from "./_components/add-customer-button";
+import EditCustomerButton from "./_components/edit-customer-button";
 import HistoryButton, {
   type HistoryEntry,
 } from "./_components/history-button";
-import LeadsToolbar from "./_components/leads-toolbar";
-import RemoveLeadButton from "./_components/remove-lead-button";
+import CustomersToolbar from "./_components/customers-toolbar";
+import RemoveCustomerButton from "./_components/remove-customer-button";
 import type {
-  LeadFormDefaults,
-  LeadFormMember,
-  LeadFormNote,
-} from "./_components/lead-form-popup";
+  CustomerFormDefaults,
+  CustomerFormMember,
+  CustomerFormNote,
+} from "./_components/customer-form-popup";
+import type { ConvertibleLead } from "./_components/lead-picker-popup";
 
 export const metadata: Metadata = {
-  title: "Leads & Prospects — WSS CRM",
+  title: "Customers — WSS CRM",
 };
 
-type LeadsPageProps = {
+type CustomersPageProps = {
   params: Promise<{ workspaceId: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
@@ -70,31 +67,15 @@ function asString(value: string | string[] | undefined): string | undefined {
   return value;
 }
 
-function isLeadStage(v: string): v is LeadStage {
-  return (LEAD_STAGES as readonly string[]).includes(v);
+function isCustomerStatus(v: string): v is CustomerStatus {
+  return (CUSTOMER_STATUSES as readonly string[]).includes(v);
 }
 function isLeadSource(v: string): v is LeadSource {
   return (LEAD_SOURCES as readonly string[]).includes(v);
 }
-function isLeadPriority(v: string): v is LeadPriority {
-  return (LEAD_PRIORITIES as readonly string[]).includes(v);
-}
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat("en-IN", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-function formatDateTimeLocal(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function formatAbsoluteDateTime(date: Date): string {
@@ -116,26 +97,23 @@ function resolveAssigneeName(
 }
 
 function buildActivitySummary(
-  type: LeadActivityType,
+  type: CustomerActivityType,
   data: Record<string, unknown>,
   userById: Map<string, { id: string; name: string }>,
 ): string {
   switch (type) {
-    case "created":
-      return "created the lead.";
-    case "stage_changed": {
-      const from = data.from as LeadStage | undefined;
-      const to = data.to as LeadStage | undefined;
-      const fromLabel = from ? LEAD_STAGE_LABEL[from] : "—";
-      const toLabel = to ? LEAD_STAGE_LABEL[to] : "—";
-      return `moved the lead from ${fromLabel} → ${toLabel}.`;
+    case "created": {
+      const fromLeadName = data.fromLeadName as string | undefined;
+      if (fromLeadName)
+        return `created the customer from lead ${fromLeadName}.`;
+      return "created the customer.";
     }
-    case "priority_changed": {
-      const from = data.from as LeadPriority | undefined;
-      const to = data.to as LeadPriority | undefined;
-      const fromLabel = from ? LEAD_PRIORITY_LABEL[from] : "—";
-      const toLabel = to ? LEAD_PRIORITY_LABEL[to] : "—";
-      return `changed priority from ${fromLabel} → ${toLabel}.`;
+    case "status_changed": {
+      const from = data.from as CustomerStatus | undefined;
+      const to = data.to as CustomerStatus | undefined;
+      const fromLabel = from ? CUSTOMER_STATUS_LABEL[from] : "—";
+      const toLabel = to ? CUSTOMER_STATUS_LABEL[to] : "—";
+      return `moved the customer from ${fromLabel} → ${toLabel}.`;
     }
     case "assignee_changed": {
       const fromName = resolveAssigneeName(
@@ -143,19 +121,10 @@ function buildActivitySummary(
         userById,
       );
       const toName = resolveAssigneeName(data.to as string | null, userById);
-      return `reassigned the lead from ${fromName} → ${toName}.`;
+      return `reassigned the customer from ${fromName} → ${toName}.`;
     }
     case "note_added":
       return "added a note.";
-    case "follow_up_changed": {
-      const from = data.from as string | null | undefined;
-      const to = data.to as string | null | undefined;
-      const fromLabel = from ? formatDate(new Date(from)) : "—";
-      const toLabel = to ? formatDate(new Date(to)) : "—";
-      if (!from && to) return `set the follow-up to ${toLabel}.`;
-      if (from && !to) return "cleared the follow-up.";
-      return `moved follow-up from ${fromLabel} → ${toLabel}.`;
-    }
     case "tags_changed": {
       const added = (data.added as string[] | undefined) ?? [];
       const removed = (data.removed as string[] | undefined) ?? [];
@@ -166,7 +135,7 @@ function buildActivitySummary(
     }
     case "details_updated": {
       const fields = ((data.fields as string[] | undefined) ?? []).map(
-        (f) => LEAD_FIELD_LABEL[f] ?? f,
+        (f) => CUSTOMER_FIELD_LABEL[f] ?? f,
       );
       if (fields.length === 0) return "updated details.";
       if (fields.length === 1) return `updated ${fields[0]}.`;
@@ -174,113 +143,31 @@ function buildActivitySummary(
       const last = fields[fields.length - 1];
       return `updated ${fields.slice(0, -1).join(", ")}, and ${last}.`;
     }
-    case "converted_to_customer": {
-      const customerName = data.customerName as string | undefined;
-      if (customerName)
-        return `converted the lead into customer ${customerName}.`;
-      return "converted the lead into a customer.";
-    }
+    case "billing_updated":
+      return "updated billing details.";
   }
 }
 
-function formatMoney(value: number): string {
-  if (!value) return "—";
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatCompactMoney(value: number): string {
-  if (value >= 10_000_000) return `${(value / 10_000_000).toFixed(1)}Cr`;
-  if (value >= 100_000) return `${(value / 100_000).toFixed(1)}L`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
-  return value.toLocaleString("en-IN");
-}
-
-function relativeDay(date: Date): {
-  label: string;
-  tone: "overdue" | "today" | "soon" | "future";
-} {
-  const now = new Date();
-  const start = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-  ).getTime();
-  const target = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-  ).getTime();
-  const dayMs = 24 * 60 * 60 * 1000;
-  const diffDays = Math.round((target - start) / dayMs);
-
-  if (diffDays < 0)
-    return {
-      label: `${Math.abs(diffDays)}d overdue`,
-      tone: "overdue",
-    };
-  if (diffDays === 0) return { label: "Today", tone: "today" };
-  if (diffDays <= 3) return { label: `in ${diffDays}d`, tone: "soon" };
-  return { label: formatDate(date), tone: "future" };
-}
-
-const followUpToneClass: Record<
-  ReturnType<typeof relativeDay>["tone"],
-  string
-> = {
-  overdue:
-    "bg-red-100 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/15 dark:text-red-300 dark:ring-red-500/25",
-  today:
-    "bg-amber-100 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/25",
-  soon: "bg-sky-100 text-sky-700 ring-1 ring-inset ring-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-500/25",
-  future:
-    "bg-zinc-100 text-zinc-600 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-500/15 dark:text-zinc-300 dark:ring-zinc-500/25",
+const STATUS_ACCENT_BORDER: Record<CustomerStatus, string> = {
+  active: "before:bg-emerald-500",
+  inactive: "before:bg-zinc-400 dark:before:bg-zinc-500",
+  churned: "before:bg-rose-500",
 };
 
-const STAGE_ACCENT_BORDER: Record<LeadStage, string> = {
-  new: "before:bg-sky-500",
-  attempting_contact: "before:bg-cyan-500",
-  contacted: "before:bg-indigo-500",
-  qualified: "before:bg-violet-500",
-  proposal_sent: "before:bg-blue-500",
-  negotiation: "before:bg-amber-500",
-  won: "before:bg-emerald-500",
-  lost: "before:bg-rose-500",
-  follow_up: "before:bg-fuchsia-500",
-};
-
-const STAGE_SEGMENT_BG: Record<LeadStage, string> = {
-  new: "bg-sky-500",
-  attempting_contact: "bg-cyan-500",
-  contacted: "bg-indigo-500",
-  qualified: "bg-violet-500",
-  proposal_sent: "bg-blue-500",
-  negotiation: "bg-amber-500",
-  won: "bg-emerald-500",
-  lost: "bg-rose-500",
-  follow_up: "bg-fuchsia-500",
-};
-
-const PRIORITY_RING_CLASS: Record<LeadPriority, string> = {
-  low: "bg-zinc-300 dark:bg-zinc-600",
-  medium: "bg-blue-500",
-  high: "bg-amber-500",
-  urgent: "bg-rose-500",
-};
-
-type LeanLead = ILead & {
+type LeanCustomer = ICustomer & {
   _id: { toString(): string };
   createdAt: Date;
   updatedAt: Date;
 };
 
-export default async function LeadsPage({
+type LeanLead = ILead & {
+  _id: { toString(): string };
+};
+
+export default async function CustomersPage({
   params,
   searchParams,
-}: LeadsPageProps) {
+}: CustomersPageProps) {
   const { workspaceId } = await params;
   const sp = await searchParams;
 
@@ -290,34 +177,26 @@ export default async function LeadsPage({
     role: myRole,
   } = await requireWorkspaceAccess({
     workspaceId,
-    allowedRoles: LEAD_VIEWER_ROLES,
+    allowedRoles: CUSTOMER_VIEWER_ROLES,
   });
 
   // Filters
   const qRaw = asString(sp.q)?.trim() ?? "";
-  const stageRaw = asString(sp.stage) ?? "open";
-  const priorityRaw = asString(sp.priority) ?? "all";
+  const statusRaw = asString(sp.status) ?? "all";
   const sourceRaw = asString(sp.source) ?? "all";
   const assigneeRaw = asString(sp.assignee) ?? "all";
 
-  // Visibility scope: sales executives only see leads assigned to them.
-  // Everyone else (owner / admin / sales_manager) sees every lead in the workspace.
-  const visibilityScope: FilterQuery<ILead> = canViewAllLeads(myRole)
+  const visibilityScope: FilterQuery<ICustomer> = canViewAllCustomers(myRole)
     ? { workspace: workspaceId }
     : { workspace: workspaceId, assignedTo: session.user.id };
 
-  const filter: FilterQuery<ILead> = { ...visibilityScope };
+  const filter: FilterQuery<ICustomer> = { ...visibilityScope };
 
-  if (stageRaw === "open") {
-    filter.stage = { $in: OPEN_LEAD_STAGES };
-  } else if (stageRaw !== "all" && isLeadStage(stageRaw)) {
-    filter.stage = stageRaw;
+  if (statusRaw !== "all" && isCustomerStatus(statusRaw)) {
+    filter.status = statusRaw;
   }
-  if (isLeadPriority(priorityRaw)) filter.priority = priorityRaw;
   if (isLeadSource(sourceRaw)) filter.source = sourceRaw;
-  // Assignee filter is ignored for sales executives — their visibility is
-  // already locked to leads assigned to themselves.
-  if (canViewAllLeads(myRole)) {
+  if (canViewAllCustomers(myRole)) {
     if (assigneeRaw === "me") filter.assignedTo = session.user.id;
     else if (assigneeRaw === "unassigned") filter.assignedTo = null;
     else if (assigneeRaw !== "all" && assigneeRaw.length > 0)
@@ -335,28 +214,39 @@ export default async function LeadsPage({
     ];
   }
 
-  // Workspace members for assignee dropdowns + name lookup
   const memberIds = [
     String(doc.owner),
     ...(doc.members ?? []).map((m) => String(m.user)),
   ];
   const uniqueMemberIds = Array.from(new Set(memberIds));
 
-  const [leadsRaw, memberUsers] = await Promise.all([
-    Lead.find(filter)
-      .sort({
-        priority: 1, // tiebreaker (alpha) — overridden below
-        nextFollowUpAt: 1,
-        updatedAt: -1,
-      })
+  const convertibleLeadsFilter: FilterQuery<ILead> = canViewAllCustomers(myRole)
+    ? { workspace: workspaceId, convertedAt: null }
+    : {
+        workspace: workspaceId,
+        convertedAt: null,
+        assignedTo: session.user.id,
+      };
+
+  const [customersRaw, memberUsers, convertibleLeadsRaw] = await Promise.all([
+    Customer.find(filter)
+      .sort({ updatedAt: -1 })
       .limit(500)
       .lean(),
     User.find({ _id: { $in: uniqueMemberIds } })
       .select("name email image")
       .lean(),
+    Lead.find(convertibleLeadsFilter)
+      .select(
+        "name email phone company jobTitle website source assignedTo tags address",
+      )
+      .sort({ updatedAt: -1 })
+      .limit(500)
+      .lean(),
   ]);
 
-  const leads = leadsRaw as unknown as LeanLead[];
+  const customers = customersRaw as unknown as LeanCustomer[];
+  const convertibleLeadsDocs = convertibleLeadsRaw as unknown as LeanLead[];
 
   const userById = new Map(
     memberUsers.map((u) => [
@@ -376,97 +266,60 @@ export default async function LeadsPage({
       .map((m) => String(m.user)),
   );
 
-  const assignableMembers: LeadFormMember[] = Array.from(salesExecIds)
+  const assignableMembers: CustomerFormMember[] = Array.from(salesExecIds)
     .map((id) => userById.get(id))
-    .filter((m): m is LeadFormMember => Boolean(m));
+    .filter((m): m is CustomerFormMember => Boolean(m));
 
-  // Priority sort weight applied after fetch
-  const priorityWeight: Record<LeadPriority, number> = {
-    urgent: 0,
-    high: 1,
-    medium: 2,
-    low: 3,
-  };
-  leads.sort((a, b) => {
-    const pa = priorityWeight[a.priority as LeadPriority] ?? 2;
-    const pb = priorityWeight[b.priority as LeadPriority] ?? 2;
-    if (pa !== pb) return pa - pb;
-    const aFu = a.nextFollowUpAt ? new Date(a.nextFollowUpAt).getTime() : null;
-    const bFu = b.nextFollowUpAt ? new Date(b.nextFollowUpAt).getTime() : null;
-    if (aFu !== null && bFu !== null) return aFu - bFu;
-    if (aFu !== null) return -1;
-    if (bFu !== null) return 1;
-    return (
-      new Date(b.updatedAt as Date).getTime() -
-      new Date(a.updatedAt as Date).getTime()
-    );
-  });
+  const convertibleLeads: ConvertibleLead[] = convertibleLeadsDocs.map((l) => ({
+    id: l._id.toString(),
+    name: l.name,
+    email: l.email ?? "",
+    phone: l.phone ?? "",
+    company: l.company ?? "",
+    jobTitle: l.jobTitle ?? "",
+    website: l.website ?? "",
+    source: (l.source as string) ?? "other",
+    assignedTo: l.assignedTo ? String(l.assignedTo) : "",
+    tags: (l.tags ?? []) as string[],
+    city: l.address?.city ?? "",
+    state: l.address?.state ?? "",
+    country: l.address?.country ?? "",
+  }));
 
-  // Stats — independent of filters, scoped to workspace
+  // Stats
   const now = new Date();
-  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const workspaceObjectId = new mongoose.Types.ObjectId(workspaceId);
-  const restrictToSelf = !canViewAllLeads(myRole);
+  const restrictToSelf = !canViewAllCustomers(myRole);
   const aggMatch: Record<string, unknown> = { workspace: workspaceObjectId };
   if (restrictToSelf) {
     aggMatch.assignedTo = new mongoose.Types.ObjectId(session.user.id);
   }
-  const scopeForCount: FilterQuery<ILead> = { ...visibilityScope };
+  const scopeForCount: FilterQuery<ICustomer> = { ...visibilityScope };
 
-  type StageAgg = { _id: LeadStage; count: number; value: number };
-  const [stageAggRaw, dueTodayCount, overdueCount, wonThisMonth] =
-    await Promise.all([
-      Lead.aggregate<StageAgg>([
-        { $match: aggMatch },
-        {
-          $group: {
-            _id: "$stage",
-            count: { $sum: 1 },
-            value: { $sum: { $ifNull: ["$estimatedValue", 0] } },
-          },
-        },
-      ]),
-      Lead.countDocuments({
-        ...scopeForCount,
-        nextFollowUpAt: { $gte: dayStart, $lt: dayEnd },
-      }),
-      Lead.countDocuments({
-        ...scopeForCount,
-        stage: { $in: OPEN_LEAD_STAGES },
-        nextFollowUpAt: { $lt: dayStart, $ne: null },
-      }),
-      Lead.countDocuments({
-        ...scopeForCount,
-        stage: "won",
-        wonAt: { $gte: monthStart },
-      }),
-    ]);
+  type StatusAgg = { _id: CustomerStatus; count: number };
+  const [statusAggRaw, newThisMonth] = await Promise.all([
+    Customer.aggregate<StatusAgg>([
+      { $match: aggMatch },
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]),
+    Customer.countDocuments({
+      ...scopeForCount,
+      createdAt: { $gte: monthStart },
+    }),
+  ]);
 
-  const stageCounts = new Map<LeadStage, number>();
-  const stageValues = new Map<LeadStage, number>();
-  for (const row of stageAggRaw) {
-    stageCounts.set(row._id, row.count);
-    stageValues.set(row._id, row.value);
-  }
-  const openCount = OPEN_LEAD_STAGES.reduce(
-    (sum, s) => sum + (stageCounts.get(s) ?? 0),
+  const statusCounts = new Map<CustomerStatus, number>();
+  for (const row of statusAggRaw) statusCounts.set(row._id, row.count);
+  const totalCount = CUSTOMER_STATUSES.reduce(
+    (sum, s) => sum + (statusCounts.get(s) ?? 0),
     0,
   );
-  const pipelineValue = OPEN_LEAD_STAGES.reduce(
-    (sum, s) => sum + (stageValues.get(s) ?? 0),
-    0,
-  );
-  const stageDistribution = OPEN_LEAD_STAGES.map((s) => ({
-    stage: s,
-    count: stageCounts.get(s) ?? 0,
+  const statusDistribution = CUSTOMER_STATUSES.map((s) => ({
+    status: s,
+    count: statusCounts.get(s) ?? 0,
   }));
-  const totalOpenForDistribution = stageDistribution.reduce(
-    (sum, s) => sum + s.count,
-    0,
-  );
 
   const workspace = {
     id: String(doc._id),
@@ -475,7 +328,7 @@ export default async function LeadsPage({
     role: myRole,
   };
 
-  const fullManager = canManageAnyLead(myRole);
+  const fullManager = canManageAnyCustomer(myRole);
 
   const stats: Array<{
     label: string;
@@ -485,29 +338,29 @@ export default async function LeadsPage({
     accent: string;
   }> = [
     {
-      label: "Open leads",
-      value: String(openCount),
-      sub: pipelineValue > 0 ? formatCompactMoney(pipelineValue) : undefined,
-      icon: UserCircle2,
+      label: "Total customers",
+      value: String(totalCount),
+      sub: newThisMonth > 0 ? `${newThisMonth} new this month` : undefined,
+      icon: Users,
       accent: "from-violet-500 to-purple-700",
     },
     {
-      label: "Follow-ups today",
-      value: String(dueTodayCount),
-      icon: CalendarClock,
-      accent: "from-blue-500 to-indigo-700",
-    },
-    {
-      label: "Overdue follow-ups",
-      value: String(overdueCount),
-      icon: AlarmClock,
-      accent: "from-rose-500 to-red-700",
-    },
-    {
-      label: "Won this month",
-      value: String(wonThisMonth),
-      icon: Trophy,
+      label: "Active",
+      value: String(statusCounts.get("active") ?? 0),
+      icon: Sparkles,
       accent: "from-emerald-500 to-teal-700",
+    },
+    {
+      label: "Inactive",
+      value: String(statusCounts.get("inactive") ?? 0),
+      icon: CalendarClock,
+      accent: "from-zinc-500 to-zinc-700",
+    },
+    {
+      label: "Churned",
+      value: String(statusCounts.get("churned") ?? 0),
+      icon: TrendingDown,
+      accent: "from-rose-500 to-red-700",
     },
   ];
 
@@ -542,19 +395,19 @@ export default async function LeadsPage({
                   aria-hidden
                   className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent"
                 />
-                <Sparkles className="relative h-5 w-5" />
+                <Users className="relative h-5 w-5" />
               </span>
               <div className="min-w-0">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                  Sales pipeline
+                  Accounts
                 </p>
                 <h1 className="mt-1 text-[26px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
-                  Leads & Prospects
+                  Customers
                 </h1>
                 <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">
-                  {canViewAllLeads(myRole)
-                    ? "Track every lead through the pipeline in "
-                    : "Your assigned leads in "}
+                  {canViewAllCustomers(myRole)
+                    ? "Manage every customer account in "
+                    : "Your assigned customers in "}
                   <span className="font-medium text-zinc-700 dark:text-zinc-300">
                     {workspace.name}
                   </span>
@@ -562,11 +415,12 @@ export default async function LeadsPage({
                 </p>
               </div>
             </div>
-            <AddLeadButton
+            <AddCustomerButton
               workspaceId={workspace.id}
               actorRole={myRole}
               currentUserId={session.user.id}
               members={assignableMembers}
+              convertibleLeads={convertibleLeads}
             />
           </div>
         </div>
@@ -598,12 +452,8 @@ export default async function LeadsPage({
                   {stat.value}
                 </p>
                 {stat.sub ? (
-                  <p className="relative mt-1 inline-flex items-center gap-1 text-[11px] font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
-                    <IndianRupee className="h-3 w-3" />
+                  <p className="relative mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
                     {stat.sub}
-                    <span className="font-normal text-zinc-400 dark:text-zinc-500">
-                      in pipeline
-                    </span>
                   </p>
                 ) : null}
               </div>
@@ -611,62 +461,61 @@ export default async function LeadsPage({
           })}
         </div>
 
-        {/* Pipeline distribution */}
-        {totalOpenForDistribution > 0 ? (
+        {/* Status distribution */}
+        {totalCount > 0 ? (
           <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
-                <span className="relative grid h-7 w-7 place-items-center overflow-hidden rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-sm">
+                <span className="relative grid h-7 w-7 place-items-center overflow-hidden rounded-md bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-sm">
                   <span
                     aria-hidden
                     className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent"
                   />
-                  <TrendingUp className="relative h-3.5 w-3.5" />
+                  <Users className="relative h-3.5 w-3.5" />
                 </span>
                 <div>
                   <p className="text-[13px] font-semibold leading-tight text-zinc-900 dark:text-zinc-100">
-                    Pipeline by stage
+                    Customers by status
                   </p>
                   <p className="mt-0.5 text-[11px] leading-tight text-zinc-500 dark:text-zinc-400">
-                    {totalOpenForDistribution} open{" "}
-                    {totalOpenForDistribution === 1 ? "lead" : "leads"} across
-                    the funnel
+                    {totalCount} total{" "}
+                    {totalCount === 1 ? "customer" : "customers"}
                   </p>
                 </div>
               </div>
             </div>
             <div className="mt-4 flex h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-              {stageDistribution
+              {statusDistribution
                 .filter((s) => s.count > 0)
                 .map((s) => {
-                  const pct = (s.count / totalOpenForDistribution) * 100;
+                  const pct = (s.count / totalCount) * 100;
                   return (
                     <div
-                      key={s.stage}
+                      key={s.status}
                       className={cn(
                         "h-full first:rounded-l-full last:rounded-r-full transition-all",
-                        STAGE_SEGMENT_BG[s.stage],
+                        CUSTOMER_STATUS_DOT_CLASS[s.status],
                       )}
                       style={{ width: `${pct}%` }}
-                      title={`${LEAD_STAGE_LABEL[s.stage]}: ${s.count}`}
+                      title={`${CUSTOMER_STATUS_LABEL[s.status]}: ${s.count}`}
                     />
                   );
                 })}
             </div>
-            <ul className="mt-3.5 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3 lg:grid-cols-5">
-              {stageDistribution.map((s) => (
+            <ul className="mt-3.5 grid grid-cols-3 gap-x-4 gap-y-1.5">
+              {statusDistribution.map((s) => (
                 <li
-                  key={s.stage}
+                  key={s.status}
                   className="flex items-center gap-1.5 text-[11.5px]"
                 >
                   <span
                     className={cn(
                       "h-2 w-2 shrink-0 rounded-full",
-                      STAGE_SEGMENT_BG[s.stage],
+                      CUSTOMER_STATUS_DOT_CLASS[s.status],
                     )}
                   />
                   <span className="truncate text-zinc-500 dark:text-zinc-400">
-                    {LEAD_STAGE_LABEL[s.stage]}
+                    {CUSTOMER_STATUS_LABEL[s.status]}
                   </span>
                   <span className="ml-auto font-medium tabular-nums text-zinc-700 dark:text-zinc-200">
                     {s.count}
@@ -677,27 +526,28 @@ export default async function LeadsPage({
           </div>
         ) : null}
 
-        <LeadsToolbar
+        <CustomersToolbar
           members={assignableMembers.map(({ id, name }) => ({ id, name }))}
           currentUserId={session.user.id}
-          showAssigneeFilter={canViewAllLeads(myRole)}
+          showAssigneeFilter={canViewAllCustomers(myRole)}
         />
 
         <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 px-5 py-3.5 dark:border-zinc-800">
             <div className="flex items-center gap-2">
               <h2 className="text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
-                {leads.length} {leads.length === 1 ? "lead" : "leads"}
+                {customers.length}{" "}
+                {customers.length === 1 ? "customer" : "customers"}
               </h2>
-              {leads.length > 0 ? (
+              {customers.length > 0 ? (
                 <span className="inline-flex h-5 items-center rounded-full bg-zinc-100 px-2 text-[10.5px] font-medium tabular-nums text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                  Sorted by priority
+                  Newest first
                 </span>
               ) : null}
             </div>
           </div>
 
-          {leads.length === 0 ? (
+          {customers.length === 0 ? (
             <div className="relative overflow-hidden">
               <div
                 aria-hidden
@@ -712,79 +562,80 @@ export default async function LeadsPage({
                   <UserPlus className="relative h-6 w-6" />
                 </span>
                 <p className="mt-4 text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
-                  No leads match these filters.
+                  No customers match these filters.
                 </p>
                 <p className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  Clear filters from the toolbar above, or capture a fresh lead
-                  to get started.
+                  Clear filters from the toolbar above, or add your first
+                  customer to get started.
                 </p>
                 <div className="mt-5">
-                  <AddLeadButton
+                  <AddCustomerButton
                     workspaceId={workspace.id}
                     actorRole={myRole}
                     currentUserId={session.user.id}
                     members={assignableMembers}
+                    convertibleLeads={convertibleLeads}
                   />
                 </div>
               </div>
             </div>
           ) : (
             <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {leads.map((lead) => {
-                const leadId = lead._id.toString();
-                const assignedToId = lead.assignedTo
-                  ? String(lead.assignedTo)
+              {customers.map((customer) => {
+                const customerId = customer._id.toString();
+                const assignedToId = customer.assignedTo
+                  ? String(customer.assignedTo)
                   : null;
                 const assignee = assignedToId
                   ? userById.get(assignedToId)
                   : null;
-                const canEdit = canManageLead(
+                const canEdit = canManageCustomer(
                   myRole,
                   session.user.id,
                   assignedToId,
                 );
 
-                const stage = lead.stage as LeadStage;
-                const priority = lead.priority as LeadPriority;
-                const source = lead.source as LeadSource;
-                const followUp = lead.nextFollowUpAt
-                  ? new Date(lead.nextFollowUpAt)
-                  : null;
-                const followUpRel = followUp ? relativeDay(followUp) : null;
-                const isClosed = stage === "won" || stage === "lost";
+                const status = customer.status as CustomerStatus;
+                const source = customer.source as LeadSource;
+                const hasBilling = Boolean(
+                  customer.billingAddress?.line1 ||
+                    customer.billingAddress?.city ||
+                    customer.gstin ||
+                    customer.pan,
+                );
 
-                const defaultsForEdit: LeadFormDefaults = {
-                  name: lead.name,
-                  email: lead.email ?? "",
-                  phone: lead.phone ?? "",
-                  company: lead.company ?? "",
-                  jobTitle: lead.jobTitle ?? "",
-                  website: lead.website ?? "",
-                  city: lead.address?.city ?? "",
-                  state: lead.address?.state ?? "",
-                  country: lead.address?.country ?? "",
-                  stage,
+                const defaultsForEdit: CustomerFormDefaults = {
+                  name: customer.name,
+                  email: customer.email ?? "",
+                  phone: customer.phone ?? "",
+                  company: customer.company ?? "",
+                  jobTitle: customer.jobTitle ?? "",
+                  website: customer.website ?? "",
+                  city: customer.address?.city ?? "",
+                  state: customer.address?.state ?? "",
+                  country: customer.address?.country ?? "",
+                  billingLine1: customer.billingAddress?.line1 ?? "",
+                  billingLine2: customer.billingAddress?.line2 ?? "",
+                  billingCity: customer.billingAddress?.city ?? "",
+                  billingState: customer.billingAddress?.state ?? "",
+                  billingCountry: customer.billingAddress?.country ?? "",
+                  billingPostalCode:
+                    customer.billingAddress?.postalCode ?? "",
+                  gstin: customer.gstin ?? "",
+                  pan: customer.pan ?? "",
+                  status,
                   source,
-                  priority,
-                  estimatedValue:
-                    lead.estimatedValue && lead.estimatedValue > 0
-                      ? String(lead.estimatedValue)
-                      : "",
                   assignedTo: assignedToId ?? "",
-                  tags: (lead.tags ?? []).join(", "),
-                  nextFollowUpAt: followUp
-                    ? formatDateTimeLocal(followUp)
-                    : "",
-                  lostReason: lead.lostReason ?? "",
+                  tags: (customer.tags ?? []).join(", "),
                 };
 
-                const notesForEdit: LeadFormNote[] = (lead.notes ?? [])
+                const notesForEdit: CustomerFormNote[] = (customer.notes ?? [])
                   .slice()
                   .reverse()
                   .map((n, idx) => {
                     const authorId = String(n.author);
                     return {
-                      id: `${leadId}-note-${idx}`,
+                      id: `${customerId}-note-${idx}`,
                       body: n.body,
                       authorName:
                         userById.get(authorId)?.name ?? "Unknown",
@@ -792,7 +643,9 @@ export default async function LeadsPage({
                     };
                   });
 
-                const historyEntries: HistoryEntry[] = (lead.activity ?? [])
+                const historyEntries: HistoryEntry[] = (
+                  customer.activity ?? []
+                )
                   .slice()
                   .sort(
                     (a, b) =>
@@ -802,12 +655,12 @@ export default async function LeadsPage({
                   .map((a, idx) => {
                     const actor = userById.get(String(a.actor));
                     const actorName = actor?.name ?? "Someone";
-                    const type = a.type as LeadActivityType;
+                    const type = a.type as CustomerActivityType;
                     const data =
                       (a.data as Record<string, unknown> | undefined) ?? {};
                     const at = new Date(a.at as Date);
                     return {
-                      id: `${leadId}-act-${idx}`,
+                      id: `${customerId}-act-${idx}`,
                       type,
                       actorName,
                       actorInitial:
@@ -824,10 +677,10 @@ export default async function LeadsPage({
 
                 return (
                   <li
-                    key={leadId}
+                    key={customerId}
                     className={cn(
                       "group relative px-5 py-4 pl-6 transition-colors before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:content-[''] hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30",
-                      STAGE_ACCENT_BORDER[stage],
+                      STATUS_ACCENT_BORDER[status],
                     )}
                   >
                     <div className="flex flex-wrap items-start gap-3">
@@ -838,68 +691,62 @@ export default async function LeadsPage({
                             className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent"
                           />
                           <span className="relative">
-                            {lead.name.charAt(0).toUpperCase()}
+                            {customer.name.charAt(0).toUpperCase()}
                           </span>
                         </span>
-                        <span
-                          aria-hidden
-                          title={`Priority: ${LEAD_PRIORITY_LABEL[priority]}`}
-                          className={cn(
-                            "absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-zinc-900",
-                            PRIORITY_RING_CLASS[priority],
-                          )}
-                        />
                       </span>
 
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                           <p className="truncate text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
-                            {lead.name}
+                            {customer.name}
                           </p>
-                          {lead.company ? (
-                            <p className="text-[12.5px] text-zinc-500 dark:text-zinc-400">
-                              · {lead.company}
-                              {lead.jobTitle ? ` · ${lead.jobTitle}` : ""}
+                          {customer.company ? (
+                            <p className="inline-flex items-center gap-1 text-[12.5px] text-zinc-500 dark:text-zinc-400">
+                              <Building2 className="h-3 w-3" />
+                              {customer.company}
+                              {customer.jobTitle
+                                ? ` · ${customer.jobTitle}`
+                                : ""}
                             </p>
                           ) : null}
                         </div>
 
                         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-zinc-500 dark:text-zinc-400">
-                          {lead.email ? (
+                          {customer.email ? (
                             <span className="inline-flex items-center gap-1">
                               <Mail className="h-3 w-3" />
                               <a
-                                href={`mailto:${lead.email}`}
+                                href={`mailto:${customer.email}`}
                                 className="hover:text-zinc-800 dark:hover:text-zinc-200"
                               >
-                                {lead.email}
+                                {customer.email}
                               </a>
                             </span>
                           ) : null}
-                          {lead.phone ? (
+                          {customer.phone ? (
                             <span className="inline-flex items-center gap-1">
                               <Phone className="h-3 w-3" />
                               <a
-                                href={`tel:${lead.phone}`}
+                                href={`tel:${customer.phone}`}
                                 className="hover:text-zinc-800 dark:hover:text-zinc-200"
                               >
-                                {lead.phone}
+                                {customer.phone}
                               </a>
                             </span>
                           ) : null}
-                          {lead.estimatedValue && lead.estimatedValue > 0 ? (
-                            <span className="font-medium tabular-nums text-zinc-700 dark:text-zinc-300">
-                              {formatMoney(lead.estimatedValue)}
+                          <span>Source: {LEAD_SOURCE_LABEL[source]}</span>
+                          {hasBilling ? (
+                            <span className="inline-flex items-center gap-1 text-zinc-400 dark:text-zinc-500">
+                              <Receipt className="h-3 w-3" />
+                              Billing on file
                             </span>
                           ) : null}
-                          <span>
-                            Source: {LEAD_SOURCE_LABEL[source]}
-                          </span>
                         </div>
 
-                        {(lead.tags ?? []).length > 0 ? (
+                        {(customer.tags ?? []).length > 0 ? (
                           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                            {(lead.tags ?? []).map((tag) => (
+                            {(customer.tags ?? []).map((tag) => (
                               <span
                                 key={tag}
                                 className="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10.5px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
@@ -916,31 +763,22 @@ export default async function LeadsPage({
                         <span
                           className={cn(
                             "inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider",
-                            LEAD_STAGE_BADGE_CLASS[stage],
+                            CUSTOMER_STATUS_BADGE_CLASS[status],
                           )}
                         >
                           <span
                             className={cn(
                               "h-1.5 w-1.5 rounded-full",
-                              STAGE_SEGMENT_BG[stage],
+                              CUSTOMER_STATUS_DOT_CLASS[status],
                             )}
                           />
-                          {LEAD_STAGE_LABEL[stage]}
+                          {CUSTOMER_STATUS_LABEL[status]}
                         </span>
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider",
-                            LEAD_PRIORITY_BADGE_CLASS[priority],
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              "h-1 w-1 rounded-full",
-                              PRIORITY_RING_CLASS[priority],
-                            )}
-                          />
-                          {LEAD_PRIORITY_LABEL[priority]}
-                        </span>
+                        {customer.convertedFromLead ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/25">
+                            From lead
+                          </span>
+                        ) : null}
                       </div>
                     </div>
 
@@ -964,55 +802,29 @@ export default async function LeadsPage({
                           )}
                         </span>
 
-                        {followUp && !isClosed && followUpRel ? (
-                          <span
-                            className={cn(
-                              "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5",
-                              followUpToneClass[followUpRel.tone],
-                            )}
-                          >
-                            <CalendarClock className="h-3 w-3" />
-                            Follow-up {followUpRel.label}
-                          </span>
-                        ) : null}
+                        <span>
+                          Added {timeAgo(new Date(customer.createdAt as Date))}
+                        </span>
 
-                        {stage === "won" && lead.wonAt ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                            <CheckCircle2 className="h-3 w-3" />
-                            Won {formatDate(new Date(lead.wonAt))}
-                          </span>
-                        ) : null}
-
-                        {lead.lastContactedAt ? (
-                          <span>
-                            Last contact{" "}
-                            {timeAgo(new Date(lead.lastContactedAt))}
-                          </span>
-                        ) : (
-                          <span>
-                            Created {timeAgo(new Date(lead.createdAt as Date))}
-                          </span>
-                        )}
-
-                        {(lead.notes?.length ?? 0) > 0 ? (
+                        {(customer.notes?.length ?? 0) > 0 ? (
                           <span className="text-zinc-400 dark:text-zinc-500">
-                            {lead.notes!.length}{" "}
-                            {lead.notes!.length === 1 ? "note" : "notes"}
+                            {customer.notes!.length}{" "}
+                            {customer.notes!.length === 1 ? "note" : "notes"}
                           </span>
                         ) : null}
                       </div>
 
                       <div className="flex items-center gap-1.5">
                         <HistoryButton
-                          leadName={lead.name}
+                          customerName={customer.name}
                           entries={historyEntries}
                         />
                         {canEdit ? (
                           <>
-                            <EditLeadButton
+                            <EditCustomerButton
                               workspaceId={workspace.id}
-                              leadId={leadId}
-                              leadName={lead.name}
+                              customerId={customerId}
+                              customerName={customer.name}
                               defaults={defaultsForEdit}
                               notes={notesForEdit}
                               members={assignableMembers}
@@ -1020,10 +832,10 @@ export default async function LeadsPage({
                               actorRole={myRole}
                             />
                             {fullManager ? (
-                              <RemoveLeadButton
+                              <RemoveCustomerButton
                                 workspaceId={workspace.id}
-                                leadId={leadId}
-                                leadName={lead.name}
+                                customerId={customerId}
+                                customerName={customer.name}
                               />
                             ) : null}
                           </>
@@ -1040,4 +852,3 @@ export default async function LeadsPage({
     </DashboardLayout>
   );
 }
-

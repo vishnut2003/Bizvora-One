@@ -1,29 +1,23 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 import {
-  LEAD_ACTIVITY_TYPES,
-  LEAD_PRIORITIES,
-  LEAD_SOURCES,
-  LEAD_STAGES,
-} from "@/lib/lead";
+  CUSTOMER_ACTIVITY_TYPES,
+  CUSTOMER_STATUSES,
+} from "@/lib/customer";
+import { LEAD_SOURCES } from "@/lib/lead";
 
 export {
-  LEAD_ACTIVITY_TYPES,
-  LEAD_ACTIVITY_LABEL,
-  LEAD_FIELD_LABEL,
-  LEAD_STAGES,
-  LEAD_SOURCES,
-  LEAD_PRIORITIES,
-  LEAD_STAGE_LABEL,
-  LEAD_SOURCE_LABEL,
-  LEAD_PRIORITY_LABEL,
-  LEAD_STAGE_BADGE_CLASS,
-  LEAD_PRIORITY_BADGE_CLASS,
-  OPEN_LEAD_STAGES,
-  type LeadActivityType,
-  type LeadStage,
-  type LeadSource,
-  type LeadPriority,
-} from "@/lib/lead";
+  CUSTOMER_ACTIVITY_TYPES,
+  CUSTOMER_ACTIVITY_LABEL,
+  CUSTOMER_FIELD_LABEL,
+  CUSTOMER_STATUSES,
+  CUSTOMER_STATUS_LABEL,
+  CUSTOMER_STATUS_BADGE_CLASS,
+  CUSTOMER_STATUS_DOT_CLASS,
+  type CustomerActivityType,
+  type CustomerStatus,
+} from "@/lib/customer";
+
+export { LEAD_SOURCES, LEAD_SOURCE_LABEL, type LeadSource } from "@/lib/lead";
 
 const noteSchema = new Schema(
   {
@@ -36,7 +30,7 @@ const noteSchema = new Schema(
 
 const activitySchema = new Schema(
   {
-    type: { type: String, enum: LEAD_ACTIVITY_TYPES, required: true },
+    type: { type: String, enum: CUSTOMER_ACTIVITY_TYPES, required: true },
     actor: { type: Schema.Types.ObjectId, ref: "User", required: true },
     at: { type: Date, default: Date.now, required: true },
     data: { type: Schema.Types.Mixed, default: {} },
@@ -53,7 +47,19 @@ const addressSchema = new Schema(
   { _id: false },
 );
 
-const leadSchema = new Schema(
+const billingAddressSchema = new Schema(
+  {
+    line1: { type: String, trim: true, default: "" },
+    line2: { type: String, trim: true, default: "" },
+    city: { type: String, trim: true, default: "" },
+    state: { type: String, trim: true, default: "" },
+    country: { type: String, trim: true, default: "" },
+    postalCode: { type: String, trim: true, default: "" },
+  },
+  { _id: false },
+);
+
+const customerSchema = new Schema(
   {
     workspace: {
       type: Schema.Types.ObjectId,
@@ -73,11 +79,26 @@ const leadSchema = new Schema(
     jobTitle: { type: String, trim: true, default: "" },
     website: { type: String, trim: true, default: "" },
     address: { type: addressSchema, default: () => ({}) },
-    stage: {
+    billingAddress: { type: billingAddressSchema, default: () => ({}) },
+    gstin: {
       type: String,
-      enum: LEAD_STAGES,
+      trim: true,
+      uppercase: true,
+      maxlength: 15,
+      default: "",
+    },
+    pan: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      maxlength: 10,
+      default: "",
+    },
+    status: {
+      type: String,
+      enum: CUSTOMER_STATUSES,
       required: true,
-      default: "new",
+      default: "active",
       index: true,
     },
     source: {
@@ -86,13 +107,6 @@ const leadSchema = new Schema(
       required: true,
       default: "other",
     },
-    priority: {
-      type: String,
-      enum: LEAD_PRIORITIES,
-      required: true,
-      default: "medium",
-    },
-    estimatedValue: { type: Number, min: 0, default: 0 },
     assignedTo: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -100,42 +114,35 @@ const leadSchema = new Schema(
       index: true,
     },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    convertedFromLead: {
+      type: Schema.Types.ObjectId,
+      ref: "Lead",
+      default: null,
+      index: true,
+    },
     tags: {
       type: [{ type: String, trim: true, lowercase: true, maxlength: 32 }],
       default: [],
     },
     notes: { type: [noteSchema], default: [] },
     activity: { type: [activitySchema], default: [] },
-    nextFollowUpAt: { type: Date, default: null, index: true },
-    lastContactedAt: { type: Date, default: null },
-    wonAt: { type: Date, default: null },
-    lostAt: { type: Date, default: null },
-    lostReason: { type: String, trim: true, maxlength: 280, default: "" },
-    convertedAt: { type: Date, default: null, index: true },
-    customerId: {
-      type: Schema.Types.ObjectId,
-      ref: "Customer",
-      default: null,
-    },
   },
   { timestamps: true },
 );
 
-leadSchema.index({ workspace: 1, stage: 1 });
-leadSchema.index({ workspace: 1, assignedTo: 1 });
-leadSchema.index({ workspace: 1, priority: 1 });
-leadSchema.index({ workspace: 1, nextFollowUpAt: 1 });
-leadSchema.index({ workspace: 1, tags: 1 });
-leadSchema.index({ workspace: 1, convertedAt: 1 });
+customerSchema.index({ workspace: 1, status: 1 });
+customerSchema.index({ workspace: 1, assignedTo: 1 });
+customerSchema.index({ workspace: 1, tags: 1 });
+customerSchema.index({ workspace: 1, convertedFromLead: 1 });
 
-export type ILead = InferSchemaType<typeof leadSchema>;
+export type ICustomer = InferSchemaType<typeof customerSchema>;
 
-if (process.env.NODE_ENV !== "production" && mongoose.models.Lead) {
-  mongoose.deleteModel("Lead");
+if (process.env.NODE_ENV !== "production" && mongoose.models.Customer) {
+  mongoose.deleteModel("Customer");
 }
 
-const Lead: Model<ILead> =
-  (mongoose.models.Lead as Model<ILead> | undefined) ??
-  mongoose.model<ILead>("Lead", leadSchema);
+const Customer: Model<ICustomer> =
+  (mongoose.models.Customer as Model<ICustomer> | undefined) ??
+  mongoose.model<ICustomer>("Customer", customerSchema);
 
-export default Lead;
+export default Customer;
