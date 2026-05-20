@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { WorkspaceColor } from "@/lib/workspace";
 import type { UserRole } from "@/lib/user";
@@ -94,18 +94,6 @@ export default function Header({ user, workspace }: HeaderProps) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="relative grid h-8 w-8 place-items-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-white"
-          >
-            <Bell className="h-4 w-4" />
-            <span
-              aria-hidden
-              className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-gradient-to-br from-primary to-secondary ring-2 ring-white dark:ring-zinc-900"
-            />
-          </button>
-
           <LogoutButton user={user} userInitial={userInitial} />
         </div>
       </div>
