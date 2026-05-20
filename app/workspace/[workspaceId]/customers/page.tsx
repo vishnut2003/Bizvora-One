@@ -31,6 +31,8 @@ import Lead, { type ILead } from "@/models/lead";
 import User from "@/models/user";
 import {
   CUSTOMER_VIEWER_ROLES,
+  canConvertLeadToCustomer,
+  canCreateCustomer,
   canManageAnyCustomer,
   canManageCustomer,
   canViewAllCustomers,
@@ -229,6 +231,18 @@ export default async function CustomersPage({
         assignedTo: session.user.id,
       };
 
+  // Only fetch convertible leads when the actor can actually convert them.
+  // Accounts can add customers manually but doesn't get a lead-conversion path.
+  const convertibleLeadsQuery = canConvertLeadToCustomer(myRole)
+    ? Lead.find(convertibleLeadsFilter)
+        .select(
+          "name email phone company jobTitle website source assignedTo tags address",
+        )
+        .sort({ updatedAt: -1 })
+        .limit(500)
+        .lean()
+    : Promise.resolve([]);
+
   const [customersRaw, memberUsers, convertibleLeadsRaw] = await Promise.all([
     Customer.find(filter)
       .sort({ updatedAt: -1 })
@@ -237,13 +251,7 @@ export default async function CustomersPage({
     User.find({ _id: { $in: uniqueMemberIds } })
       .select("name email image")
       .lean(),
-    Lead.find(convertibleLeadsFilter)
-      .select(
-        "name email phone company jobTitle website source assignedTo tags address",
-      )
-      .sort({ updatedAt: -1 })
-      .limit(500)
-      .lean(),
+    convertibleLeadsQuery,
   ]);
 
   const customers = customersRaw as unknown as LeanCustomer[];
@@ -330,6 +338,8 @@ export default async function CustomersPage({
   };
 
   const fullManager = canManageAnyCustomer(myRole);
+  const canAddCustomer = canCreateCustomer(myRole);
+  const canConvertFromLead = canConvertLeadToCustomer(myRole);
 
   const stats: Array<{
     label: string;
@@ -416,13 +426,16 @@ export default async function CustomersPage({
                 </p>
               </div>
             </div>
-            <AddCustomerButton
-              workspaceId={workspace.id}
-              actorRole={myRole}
-              currentUserId={session.user.id}
-              members={assignableMembers}
-              convertibleLeads={convertibleLeads}
-            />
+            {canAddCustomer ? (
+              <AddCustomerButton
+                workspaceId={workspace.id}
+                actorRole={myRole}
+                currentUserId={session.user.id}
+                members={assignableMembers}
+                convertibleLeads={convertibleLeads}
+                canConvertFromLead={canConvertFromLead}
+              />
+            ) : null}
           </div>
         </div>
 
@@ -566,18 +579,22 @@ export default async function CustomersPage({
                   No customers match these filters.
                 </p>
                 <p className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  Clear filters from the toolbar above, or add your first
-                  customer to get started.
+                  {canAddCustomer
+                    ? "Clear filters from the toolbar above, or add your first customer to get started."
+                    : "Clear filters from the toolbar above to see customers."}
                 </p>
-                <div className="mt-5">
-                  <AddCustomerButton
-                    workspaceId={workspace.id}
-                    actorRole={myRole}
-                    currentUserId={session.user.id}
-                    members={assignableMembers}
-                    convertibleLeads={convertibleLeads}
-                  />
-                </div>
+                {canAddCustomer ? (
+                  <div className="mt-5">
+                    <AddCustomerButton
+                      workspaceId={workspace.id}
+                      actorRole={myRole}
+                      currentUserId={session.user.id}
+                      members={assignableMembers}
+                      convertibleLeads={convertibleLeads}
+                      canConvertFromLead={canConvertFromLead}
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : (

@@ -70,12 +70,22 @@ export const CUSTOMER_VIEWER_ROLES: UserRole[] = [
   "admin",
   "sales_manager",
   "sales_executive",
+  "accounts",
 ];
 
 export const CUSTOMER_FULL_MANAGER_ROLES: UserRole[] = [
   "owner",
   "admin",
   "sales_manager",
+];
+
+// Roles that can create customers via the manual form. Accounts can onboard
+// billable contacts directly; sales executives cannot add new customers.
+export const CUSTOMER_CREATOR_ROLES: UserRole[] = [
+  "owner",
+  "admin",
+  "sales_manager",
+  "accounts",
 ];
 
 export function canViewCustomers(role: UserRole): boolean {
@@ -89,6 +99,16 @@ export function canViewAllCustomers(role: UserRole): boolean {
 }
 
 export function canManageAnyCustomer(role: UserRole): boolean {
+  return CUSTOMER_FULL_MANAGER_ROLES.includes(role);
+}
+
+export function canCreateCustomer(role: UserRole): boolean {
+  return CUSTOMER_CREATOR_ROLES.includes(role);
+}
+
+// Converting a lead into a customer is a sales workflow — accounts can add
+// customers manually but doesn't have access to the leads pipeline.
+export function canConvertLeadToCustomer(role: UserRole): boolean {
   return CUSTOMER_FULL_MANAGER_ROLES.includes(role);
 }
 

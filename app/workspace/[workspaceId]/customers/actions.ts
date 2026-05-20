@@ -16,6 +16,8 @@ import Lead, {
 } from "@/models/lead";
 import Workspace from "@/models/workspace";
 import {
+  canConvertLeadToCustomer,
+  canCreateCustomer,
   canManageAnyCustomer,
   canManageCustomer,
   canViewCustomers,
@@ -264,7 +266,7 @@ export async function createCustomer(
   if (!workspace) return { formError: "Workspace not found." };
 
   const actorRole = getActorRole(workspace, session.user.id);
-  if (!canViewCustomers(actorRole)) {
+  if (!canCreateCustomer(actorRole)) {
     return { formError: "You don't have permission to add customers." };
   }
 
@@ -369,8 +371,8 @@ export async function createCustomerFromLead(
   if (!workspace) return { formError: "Workspace not found." };
 
   const actorRole = getActorRole(workspace, session.user.id);
-  if (!canViewCustomers(actorRole)) {
-    return { formError: "You don't have permission to add customers." };
+  if (!canConvertLeadToCustomer(actorRole)) {
+    return { formError: "You don't have permission to convert leads." };
   }
 
   const lead = await Lead.findOne({ _id: leadId, workspace: workspaceId });

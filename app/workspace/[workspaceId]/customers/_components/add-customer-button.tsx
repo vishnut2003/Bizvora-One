@@ -30,12 +30,14 @@ export default function AddCustomerButton({
   currentUserId,
   members,
   convertibleLeads,
+  canConvertFromLead,
 }: {
   workspaceId: string;
   actorRole: UserRole;
   currentUserId: string;
   members: CustomerFormMember[];
   convertibleLeads: ConvertibleLead[];
+  canConvertFromLead: boolean;
 }) {
   const [step, setStep] = useState<Step>("closed");
   const [formDefaults, setFormDefaults] = useState<CustomerFormDefaults>(() => ({
@@ -47,8 +49,14 @@ export default function AddCustomerButton({
     undefined,
   );
 
-  const openChooser = () => {
-    setStep("chooser");
+  const handleAddClick = () => {
+    // Accounts (and any role without lead-conversion rights) skips the
+    // manual-vs-from-lead chooser and goes straight to the manual form.
+    if (canConvertFromLead) {
+      setStep("chooser");
+    } else {
+      pickManual();
+    }
   };
 
   const pickManual = () => {
@@ -125,28 +133,32 @@ export default function AddCustomerButton({
         type="button"
         variant="primary"
         size="sm"
-        onClick={openChooser}
+        onClick={handleAddClick}
       >
         <UserPlus className="h-3.5 w-3.5" />
         Add customer
       </Button>
 
-      <CustomerChooserPopup
-        open={step === "chooser"}
-        onOpenChange={handleChooserOpenChange}
-        onPickManual={pickManual}
-        onPickFromLead={pickFromLead}
-        fromLeadDisabled={convertibleLeads.length === 0}
-        fromLeadDisabledReason="No unconverted leads available to convert."
-      />
+      {canConvertFromLead ? (
+        <>
+          <CustomerChooserPopup
+            open={step === "chooser"}
+            onOpenChange={handleChooserOpenChange}
+            onPickManual={pickManual}
+            onPickFromLead={pickFromLead}
+            fromLeadDisabled={convertibleLeads.length === 0}
+            fromLeadDisabledReason="No unconverted leads available to convert."
+          />
 
-      <LeadPickerPopup
-        open={step === "lead-picker"}
-        onOpenChange={handleLeadPickerOpenChange}
-        leads={convertibleLeads}
-        onPick={handleLeadPicked}
-        onBack={() => setStep("chooser")}
-      />
+          <LeadPickerPopup
+            open={step === "lead-picker"}
+            onOpenChange={handleLeadPickerOpenChange}
+            leads={convertibleLeads}
+            onPick={handleLeadPicked}
+            onBack={() => setStep("chooser")}
+          />
+        </>
+      ) : null}
 
       <CustomerFormPopup
         open={step === "form"}
