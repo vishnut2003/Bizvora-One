@@ -67,11 +67,7 @@ export const navSections: NavSection[] = [
     restrictedTo: ["owner", "admin", "sales_manager", "accounts"],
   },
   {
-    heading: "Human Resource",
-    items: [{ href: "/payment-slips", label: "Payment Slip", icon: Wallet }],
-  },
-  {
-    heading: "For HR",
+    heading: "HR & Payroll",
     items: [{ href: "/employees", label: "Employees", icon: IdCard }],
     restrictedTo: ["owner", "admin", "hr"],
   },
