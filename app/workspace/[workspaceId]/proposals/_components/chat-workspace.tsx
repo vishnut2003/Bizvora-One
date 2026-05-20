@@ -1,13 +1,16 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
+  type ChangeEvent,
   type FormEvent,
   type KeyboardEvent,
   type MouseEvent as ReactMouseEvent,
+  type SyntheticEvent,
 } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -22,13 +25,20 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/cn";
 import type { ProposalDocument } from "@/lib/proposal-ai";
-import { sendProposalMessage } from "../actions";
+import { searchMentionables, sendProposalMessage } from "../actions";
 import type {
   SerializedProposalChat,
   SerializedProposalMessage,
 } from "../_lib/serialize";
+import {
+  findActiveMentionQuery,
+  formatMentionToken,
+  splitMentionSegments,
+  type MentionSearchResult,
+} from "../_lib/mentions";
 import { useRail } from "./proposals-chat-shell";
 import ProposalPdfViewer from "./proposal-pdf-viewer";
+import MentionPopover from "./mention-popover";
 
 type Props = {
   workspaceId: string;
@@ -79,6 +89,20 @@ export default function ChatWorkspace({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pdfWidth, setPdfWidth] = useState(40);
   const [isPdfOpen, setIsPdfOpen] = useState(false);
+
+  // Mention picker state: when the caret sits inside an `@query` token we
+  // show a small popover with workspace leads + customers to pick from.
+  const [mention, setMention] = useState<{
+    start: number;
+    end: number;
+    query: string;
+  } | null>(null);
+  const [mentionResults, setMentionResults] = useState<MentionSearchResult[]>(
+    [],
+  );
+  const [mentionLoading, setMentionLoading] = useState(false);
+  const [mentionActiveIdx, setMentionActiveIdx] = useState(0);
+  const mentionSearchSeq = useRef(0);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -133,6 +157,73 @@ export default function ChatWorkspace({
     document.body.style.userSelect = "none";
   }
 
+  const syncMention = useCallback((value: string, caret: number) => {
+    const next = findActiveMentionQuery(value, caret);
+    setMention(next);
+    if (!next) {
+      setMentionResults([]);
+      setMentionActiveIdx(0);
+    }
+  }, []);
+
+  function handleInputChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    const value = e.target.value;
+    setInput(value);
+    syncMention(value, e.target.selectionStart ?? value.length);
+  }
+
+  function handleCaretMove(e: SyntheticEvent<HTMLTextAreaElement>) {
+    const el = e.currentTarget;
+    syncMention(el.value, el.selectionStart ?? el.value.length);
+  }
+
+  // Debounced search whenever the active mention query changes.
+  useEffect(() => {
+    if (!mention) return;
+    const seq = ++mentionSearchSeq.current;
+    setMentionLoading(true);
+    const timer = window.setTimeout(async () => {
+      const res = await searchMentionables(workspaceId, mention.query);
+      if (seq !== mentionSearchSeq.current) return;
+      setMentionLoading(false);
+      if (res.ok) {
+        setMentionResults(res.results);
+        setMentionActiveIdx(0);
+      } else {
+        setMentionResults([]);
+      }
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [mention, workspaceId]);
+
+  function insertMention(result: MentionSearchResult) {
+    if (!mention) return;
+    const token = formatMentionToken({
+      type: result.type,
+      id: result.id,
+      name: result.name,
+    });
+    const before = input.slice(0, mention.start);
+    const after = input.slice(mention.end);
+    // Pad with a trailing space so the next character isn't glued to the
+    // token (also makes the picker dismiss naturally on the next keystroke).
+    const insertion = `${token} `;
+    const nextValue = `${before}${insertion}${after}`;
+    setInput(nextValue);
+    setMention(null);
+    setMentionResults([]);
+    setMentionActiveIdx(0);
+
+    // Restore focus + caret position after React commits the new value.
+    const caret = before.length + insertion.length;
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(caret, caret);
+    });
+  }
+
   async function sendMessage(rawText: string) {
     const text = rawText.trim();
     if (!text || isThinking) return;
@@ -181,6 +272,36 @@ export default function ChatWorkspace({
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (mention) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setMentionActiveIdx((i) =>
+          mentionResults.length === 0
+            ? 0
+            : (i + 1) % mentionResults.length,
+        );
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setMentionActiveIdx((i) =>
+          mentionResults.length === 0
+            ? 0
+            : (i - 1 + mentionResults.length) % mentionResults.length,
+        );
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setMention(null);
+        return;
+      }
+      if ((e.key === "Enter" || e.key === "Tab") && mentionResults.length > 0) {
+        e.preventDefault();
+        insertMention(mentionResults[mentionActiveIdx] ?? mentionResults[0]);
+        return;
+      }
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage(input);
@@ -260,27 +381,42 @@ export default function ChatWorkspace({
 
         <form onSubmit={handleSubmit} className="px-3 pb-5 pt-2 sm:px-6">
           <div className="mx-auto w-full max-w-3xl">
-            <div className="flex items-end gap-2 rounded-3xl border border-zinc-200/80 bg-white p-2.5 shadow-[0_4px_24px_-12px_rgba(24,24,27,0.08)] transition-all focus-within:border-zinc-300 focus-within:shadow-[0_8px_28px_-12px_rgba(24,24,27,0.14)] dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:focus-within:border-zinc-700">
-              <textarea
-                ref={textareaRef}
-                rows={1}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Message the proposal assistant…"
-                className="max-h-[200px] min-h-[40px] flex-1 resize-none bg-transparent px-3 py-2 text-[14px] leading-relaxed text-zinc-900 placeholder-zinc-400 outline-none dark:text-zinc-100"
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || isThinking}
-                aria-label="Send"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-zinc-900 text-white transition-all enabled:hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 dark:bg-zinc-100 dark:text-zinc-900 dark:enabled:hover:bg-white dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600"
-              >
-                <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
-              </button>
+            <div className="relative">
+              {mention ? (
+                <MentionPopover
+                  query={mention.query}
+                  results={mentionResults}
+                  loading={mentionLoading}
+                  activeIndex={mentionActiveIdx}
+                  onHover={setMentionActiveIdx}
+                  onSelect={insertMention}
+                />
+              ) : null}
+              <div className="flex items-end gap-2 rounded-3xl border border-zinc-200/80 bg-white p-2.5 shadow-[0_4px_24px_-12px_rgba(24,24,27,0.08)] transition-all focus-within:border-zinc-300 focus-within:shadow-[0_8px_28px_-12px_rgba(24,24,27,0.14)] dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:focus-within:border-zinc-700">
+                <textarea
+                  ref={textareaRef}
+                  rows={1}
+                  value={input}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  onKeyUp={handleCaretMove}
+                  onClick={handleCaretMove}
+                  onBlur={() => setMention(null)}
+                  placeholder="Message the proposal assistant — type @ to mention a lead or customer…"
+                  className="max-h-[200px] min-h-[40px] flex-1 resize-none bg-transparent px-3 py-2 text-[14px] leading-relaxed text-zinc-900 placeholder-zinc-400 outline-none dark:text-zinc-100"
+                />
+                <button
+                  type="submit"
+                  disabled={!input.trim() || isThinking}
+                  aria-label="Send"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-zinc-900 text-white transition-all enabled:hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 dark:bg-zinc-100 dark:text-zinc-900 dark:enabled:hover:bg-white dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600"
+                >
+                  <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
+                </button>
+              </div>
             </div>
             <p className="mt-2 text-center text-[10.5px] text-zinc-400 dark:text-zinc-500">
-              Enter to send · Shift + Enter for newline
+              Enter to send · Shift + Enter for newline · @ to mention
             </p>
           </div>
         </form>
@@ -361,7 +497,7 @@ function MessageRow({
     return (
       <li className="flex items-start justify-end gap-3">
         <div className="max-w-[80%] whitespace-pre-wrap rounded-2xl bg-zinc-100 px-4 py-2.5 text-[14px] leading-relaxed text-zinc-900 dark:bg-zinc-800/70 dark:text-zinc-100">
-          {message.content}
+          <UserMessageContent text={message.content} />
         </div>
         {userImage ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -506,6 +642,33 @@ function AssistantMarkdown({ content }: { content: string }) {
     <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
       {content}
     </ReactMarkdown>
+  );
+}
+
+function UserMessageContent({ text }: { text: string }) {
+  const segments = useMemo(() => splitMentionSegments(text), [text]);
+  if (segments.length === 0) return null;
+  return (
+    <>
+      {segments.map((seg, idx) =>
+        seg.kind === "text" ? (
+          <span key={idx}>{seg.value}</span>
+        ) : (
+          <span
+            key={idx}
+            className={cn(
+              "mx-0.5 inline-flex items-center rounded-md px-1.5 py-0.5 text-[12.5px] font-medium align-baseline",
+              seg.ref.type === "customer"
+                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
+                : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
+            )}
+            title={`${seg.ref.type === "customer" ? "Customer" : "Lead"}: ${seg.ref.name}`}
+          >
+            @{seg.ref.name}
+          </span>
+        ),
+      )}
+    </>
   );
 }
 
