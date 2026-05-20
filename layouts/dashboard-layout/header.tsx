@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Bell, ChevronRight, LogOut } from "lucide-react";
-import { signOut } from "@/config/auth";
+import { Bell, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { WorkspaceColor } from "@/lib/workspace";
 import type { UserRole } from "@/lib/user";
 import MobileSidebar from "./mobile-sidebar";
+import LogoutButton from "./logout-button";
 
 const swatch: Record<WorkspaceColor, string> = {
   violet: "bg-gradient-to-br from-violet-500 to-purple-700",
@@ -106,36 +106,7 @@ export default function Header({ user, workspace }: HeaderProps) {
             />
           </button>
 
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/login" });
-            }}
-          >
-            <button
-              type="submit"
-              className="inline-flex h-8 items-center gap-2 rounded-md border border-zinc-200 bg-white pl-1 pr-2 text-[12px] text-zinc-700 transition-colors hover:border-zinc-300 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:text-white"
-            >
-              {user.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.image}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  className="h-6 w-6 rounded-[5px] ring-1 ring-zinc-200 dark:ring-zinc-700"
-                />
-              ) : (
-                <span className="grid h-6 w-6 place-items-center rounded-[5px] bg-gradient-to-br from-primary to-secondary text-[10px] font-semibold text-white">
-                  {userInitial}
-                </span>
-              )}
-              <span className="hidden max-w-[160px] truncate sm:inline">
-                {user.email ?? user.name}
-              </span>
-              <span className="mx-0.5 hidden h-3 w-px bg-zinc-200 sm:inline-block dark:bg-zinc-700" />
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
-          </form>
+          <LogoutButton user={user} userInitial={userInitial} />
         </div>
       </div>
     </header>
