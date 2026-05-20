@@ -3,6 +3,7 @@
 import mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { Session } from "next-auth";
 import { auth } from "@/config/auth";
 import { connectDB } from "@/config/db";
 import Workspace from "@/models/workspace";
@@ -99,9 +100,13 @@ function parseItems(raw: string): ParsedItem[] | null {
   }
 }
 
+type AuthedSession = Session & {
+  user: NonNullable<Session["user"]> & { id: string };
+};
+
 type WorkspaceContext = {
   ok: true;
-  session: Awaited<ReturnType<typeof auth>>;
+  session: AuthedSession;
   workspaceDoc: Awaited<ReturnType<typeof Workspace.findById>>;
   role: ReturnType<typeof getActorRole>;
 };
@@ -128,7 +133,12 @@ async function loadWorkspaceForActor(
       error: "You don't have permission to manage quotations.",
     };
   }
-  return { ok: true, session, workspaceDoc, role };
+  return {
+    ok: true,
+    session: session as AuthedSession,
+    workspaceDoc,
+    role,
+  };
 }
 
 // Search both customers and leads in one go so the recipient picker can show
@@ -603,8 +613,15 @@ export async function updateQuotation(
   const totals = computeTotals(data.items, data.discount);
 
   // Sales executives can't reassign quotations away from themselves.
-  const nextAssignedTo =
-    canManageAnyQuotation(role) ? data.assignedTo : existing.assignedTo;
+  // Cast manager-supplied id to ObjectId so the Mongoose setter sees a
+  // shape that matches its declared field type.
+  const nextAssignedTo: mongoose.Types.ObjectId | null = canManageAnyQuotation(
+    role,
+  )
+    ? data.assignedTo
+      ? new mongoose.Types.ObjectId(data.assignedTo)
+      : null
+    : (existing.assignedTo ?? null);
 
   existing.recipient = recipientForPersist(data.recipient) as unknown as typeof existing.recipient;
   existing.currency = data.currency;
