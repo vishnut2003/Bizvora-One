@@ -20,6 +20,8 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/cn";
 import type { ProposalDocument } from "@/lib/proposal-ai";
 import {
@@ -646,7 +648,7 @@ function MessageRow({
         <Sparkles className="h-3.5 w-3.5" />
       </span>
       <div className="min-w-0 flex-1 pt-1 text-[14px] leading-relaxed text-zinc-800 dark:text-zinc-100">
-        <div className="whitespace-pre-wrap">{message.content}</div>
+        <AssistantMarkdown content={message.content} />
         {message.proposal ? (
           <div className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11.5px] font-medium text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
             <FileText className="h-3 w-3" />
@@ -655,6 +657,119 @@ function MessageRow({
         ) : null}
       </div>
     </li>
+  );
+}
+
+const markdownComponents: Components = {
+  p: ({ children }) => (
+    <p className="mb-3 last:mb-0 whitespace-pre-wrap">{children}</p>
+  ),
+  ul: ({ children }) => (
+    <ul className="mb-3 ml-5 list-disc space-y-1 last:mb-0 marker:text-zinc-400 dark:marker:text-zinc-500">
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="mb-3 ml-5 list-decimal space-y-1 last:mb-0 marker:text-zinc-400 dark:marker:text-zinc-500">
+      {children}
+    </ol>
+  ),
+  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+  h1: ({ children }) => (
+    <h1 className="mt-4 mb-2 text-[18px] font-semibold tracking-tight first:mt-0">
+      {children}
+    </h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="mt-4 mb-2 text-[16px] font-semibold tracking-tight first:mt-0">
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="mt-3 mb-1.5 text-[14.5px] font-semibold first:mt-0">
+      {children}
+    </h3>
+  ),
+  h4: ({ children }) => (
+    <h4 className="mt-3 mb-1.5 text-[13.5px] font-semibold first:mt-0">
+      {children}
+    </h4>
+  ),
+  strong: ({ children }) => (
+    <strong className="font-semibold text-zinc-900 dark:text-zinc-50">
+      {children}
+    </strong>
+  ),
+  em: ({ children }) => <em className="italic">{children}</em>,
+  a: ({ children, href }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-primary underline decoration-primary/40 underline-offset-2 transition-colors hover:decoration-primary"
+    >
+      {children}
+    </a>
+  ),
+  code: ({ className, children, ...props }) => {
+    const isBlock = /language-/.test(className ?? "");
+    if (isBlock) {
+      return (
+        <code
+          className={cn(
+            "block whitespace-pre text-[12.5px] leading-relaxed",
+            className,
+          )}
+          {...props}
+        >
+          {children}
+        </code>
+      );
+    }
+    return (
+      <code
+        className="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[12.5px] text-zinc-800 dark:bg-zinc-800/70 dark:text-zinc-100"
+        {...props}
+      >
+        {children}
+      </code>
+    );
+  },
+  pre: ({ children }) => (
+    <pre className="mb-3 overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-50 p-3 last:mb-0 dark:border-zinc-800 dark:bg-zinc-900/60">
+      {children}
+    </pre>
+  ),
+  blockquote: ({ children }) => (
+    <blockquote className="mb-3 border-l-2 border-zinc-300 pl-3 text-zinc-600 last:mb-0 dark:border-zinc-700 dark:text-zinc-400">
+      {children}
+    </blockquote>
+  ),
+  hr: () => (
+    <hr className="my-4 border-zinc-200 dark:border-zinc-800" />
+  ),
+  table: ({ children }) => (
+    <div className="mb-3 overflow-x-auto last:mb-0">
+      <table className="w-full border-collapse text-[13px]">{children}</table>
+    </div>
+  ),
+  th: ({ children }) => (
+    <th className="border-b border-zinc-200 px-2 py-1.5 text-left font-semibold text-zinc-700 dark:border-zinc-800 dark:text-zinc-200">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="border-b border-zinc-100 px-2 py-1.5 align-top text-zinc-700 dark:border-zinc-800/60 dark:text-zinc-300">
+      {children}
+    </td>
+  ),
+};
+
+function AssistantMarkdown({ content }: { content: string }) {
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+      {content}
+    </ReactMarkdown>
   );
 }
 
