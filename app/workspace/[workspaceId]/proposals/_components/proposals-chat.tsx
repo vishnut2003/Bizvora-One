@@ -333,7 +333,7 @@ export default function ProposalsChat({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-1.5 pb-3 group-hover/rail:px-2">
+        <div className="rail-scroll flex-1 overflow-y-auto px-1.5 pb-3 group-hover/rail:px-2">
           {filtered.length === 0 ? (
             <div className="mx-2 mt-4 hidden rounded-lg border border-dashed border-zinc-200 px-3 py-6 text-center text-[12px] text-zinc-500 group-hover/rail:block dark:border-zinc-800 dark:text-zinc-400">
               {query

@@ -70,3 +70,34 @@ body {
   background: transparent;
 }
 
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* Hide scrollbar while collapsed; restore on parent hover (expanded). */
+.rail-scroll {
+  scrollbar-width: none;
+}
+
+.rail-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.group\/rail:hover .rail-scroll {
+  scrollbar-width: thin;
+}
+
+.group\/rail:hover .rail-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  display: block;
+}
+

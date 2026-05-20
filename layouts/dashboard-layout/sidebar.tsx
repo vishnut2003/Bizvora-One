@@ -46,8 +46,10 @@ export default function Sidebar({
 
       <div
         className={cn(
-          "min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]",
-          compact ? "-mx-2 mt-1 px-2" : "-mx-3 mt-5 px-3",
+          "min-h-0 flex-1 overflow-y-auto",
+          compact
+            ? "no-scrollbar -mx-2 mt-1 px-2"
+            : "-mx-3 mt-5 px-3 [scrollbar-gutter:stable]",
         )}
       >
         <NavList
