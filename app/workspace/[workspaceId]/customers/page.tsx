@@ -148,6 +148,12 @@ function buildActivitySummary(
     }
     case "billing_updated":
       return "updated billing details.";
+    case "project_linked": {
+      const name = data.projectName as string | undefined;
+      return name
+        ? `linked the project ${name}.`
+        : "linked a new project to this customer.";
+    }
   }
 }
 
