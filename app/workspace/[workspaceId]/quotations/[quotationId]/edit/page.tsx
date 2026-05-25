@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import mongoose from "mongoose";
-import { ArrowLeft, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, FileText } from "lucide-react";
 import Quotation from "@/models/quotation";
 import User from "@/models/user";
 import { requireWorkspaceAccess } from "@/lib/workspace-access";
@@ -138,7 +138,7 @@ export default async function EditQuotationPage({ params }: Props) {
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <div className="flex items-start gap-3">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
             <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/30">
               <span
                 aria-hidden
@@ -162,6 +162,13 @@ export default async function EditQuotationPage({ params }: Props) {
               </p>
             </div>
           </div>
+          <Link
+            href={`/workspace/${workspace.id}/quotations/${quotation.id}/pdf`}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 text-[13px] font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800/70"
+          >
+            <FileText className="h-4 w-4" />
+            View PDF
+          </Link>
         </div>
 
         <QuotationForm

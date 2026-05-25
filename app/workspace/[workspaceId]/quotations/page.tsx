@@ -430,6 +430,7 @@ export default async function QuotationsPage({
                   key={qd.id}
                   quotation={qd}
                   href={`/workspace/${workspace.id}/quotations/${qd.id}/edit`}
+                  pdfHref={`/workspace/${workspace.id}/quotations/${qd.id}/pdf`}
                 />
               ))}
             </div>

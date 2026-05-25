@@ -1,9 +1,9 @@
 import Link from "next/link";
 import {
-  ArrowUpRight,
   Building2,
   CalendarRange,
   Clock,
+  FileText,
   Receipt,
   UserPlus,
   UserRound,
@@ -55,9 +55,11 @@ function shortDate(iso: string): string {
 export default function QuotationCard({
   quotation,
   href,
+  pdfHref,
 }: {
   quotation: QuotationCardData;
   href: string;
+  pdfHref: string;
 }) {
   const kind = quotation.recipient.kind;
   const kindStyles =
@@ -79,10 +81,7 @@ export default function QuotationCard({
     kind === "customer" ? Users : kind === "lead" ? UserRound : UserPlus;
 
   return (
-    <Link
-      href={href}
-      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 pt-[22px] transition-all hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-[0_18px_38px_-18px_rgba(24,24,27,0.22)] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
-    >
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 pt-[22px] transition-all hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-[0_18px_38px_-18px_rgba(24,24,27,0.22)] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
       <span
         aria-hidden
         className={cn(
@@ -179,11 +178,23 @@ export default function QuotationCard({
             {formatCurrency(quotation.total, quotation.currency)}
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400 transition-colors group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-200">
-          Open
-          <ArrowUpRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-        </span>
+        <Link
+          href={pdfHref}
+          aria-label={`View PDF for quotation ${quotation.number}`}
+          className="relative z-20 inline-flex h-7 items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2.5 text-[11px] font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:text-white"
+        >
+          <FileText className="h-3 w-3" />
+          View PDF
+        </Link>
       </div>
-    </Link>
+
+      {/* Full-card overlay: clicking anywhere (except the PDF button above,
+          which sits at a higher z-index) opens the quotation for editing. */}
+      <Link
+        href={href}
+        aria-label={`Open quotation ${quotation.number}`}
+        className="absolute inset-0 z-10 rounded-2xl"
+      />
+    </div>
   );
 }
