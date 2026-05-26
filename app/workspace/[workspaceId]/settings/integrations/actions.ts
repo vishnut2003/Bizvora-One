@@ -93,3 +93,89 @@ export async function disconnectGoogleAds(
   revalidatePath(`/workspace/${workspaceId}/settings/integrations`);
   return { ok: true };
 }
+
+// ----------------------------------------------------------------------------
+// Web Forms
+// ----------------------------------------------------------------------------
+
+export async function connectWebForm(
+  workspaceId: string,
+): Promise<IntegrationActionState> {
+  const guard = await authorize(workspaceId);
+  if ("formError" in guard) return guard;
+
+  // Idempotent: if it already exists, do nothing.
+  const existing = await Integration.findOne({
+    workspace: workspaceId,
+    provider: "web_form",
+  });
+  if (!existing) {
+    await Integration.create({
+      workspace: workspaceId,
+      provider: "web_form",
+      webhookKey: generateWebhookKey(),
+      defaults: { priority: "medium", tags: [] },
+      status: "active",
+      connectedBy: guard.userId,
+    });
+  }
+
+  revalidatePath(`/workspace/${workspaceId}/settings/integrations`);
+  return { ok: true };
+}
+
+export async function regenerateWebFormKey(
+  workspaceId: string,
+): Promise<IntegrationActionState> {
+  const guard = await authorize(workspaceId);
+  if ("formError" in guard) return guard;
+
+  const result = await Integration.updateOne(
+    { workspace: workspaceId, provider: "web_form" },
+    { $set: { webhookKey: generateWebhookKey() } },
+  );
+  if (result.matchedCount === 0) {
+    return { formError: "Web Form integration isn't connected yet." };
+  }
+
+  revalidatePath(`/workspace/${workspaceId}/settings/integrations`);
+  return { ok: true };
+}
+
+export async function setWebFormStatus(
+  workspaceId: string,
+  status: IntegrationStatus,
+): Promise<IntegrationActionState> {
+  const guard = await authorize(workspaceId);
+  if ("formError" in guard) return guard;
+
+  if (!(INTEGRATION_STATUSES as readonly string[]).includes(status)) {
+    return { formError: "Invalid status." };
+  }
+
+  const result = await Integration.updateOne(
+    { workspace: workspaceId, provider: "web_form" },
+    { $set: { status } },
+  );
+  if (result.matchedCount === 0) {
+    return { formError: "Web Form integration isn't connected yet." };
+  }
+
+  revalidatePath(`/workspace/${workspaceId}/settings/integrations`);
+  return { ok: true };
+}
+
+export async function disconnectWebForm(
+  workspaceId: string,
+): Promise<IntegrationActionState> {
+  const guard = await authorize(workspaceId);
+  if ("formError" in guard) return guard;
+
+  await Integration.deleteOne({
+    workspace: workspaceId,
+    provider: "web_form",
+  });
+
+  revalidatePath(`/workspace/${workspaceId}/settings/integrations`);
+  return { ok: true };
+}

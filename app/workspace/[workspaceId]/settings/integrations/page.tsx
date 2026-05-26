@@ -9,6 +9,9 @@ import DashboardLayout from "@/layouts/dashboard-layout";
 import GoogleAdsCard, {
   type GoogleAdsCardData,
 } from "./_components/google-ads-card";
+import WebFormCard, {
+  type WebFormCardData,
+} from "./_components/web-form-card";
 
 export const metadata: Metadata = {
   title: "Integrations — WSS CRM",
@@ -36,29 +39,51 @@ export default async function IntegrationsPage({
   });
 
   await connectDB();
-  const integration = await Integration.findOne({
-    workspace: workspaceId,
-    provider: "google_ads",
-  }).lean();
+  const [googleAdsIntegration, webFormIntegration] = await Promise.all([
+    Integration.findOne({
+      workspace: workspaceId,
+      provider: "google_ads",
+    }).lean(),
+    Integration.findOne({
+      workspace: workspaceId,
+      provider: "web_form",
+    }).lean(),
+  ]);
 
   const base = getPublicBaseUrl();
-  const webhookUrl = base
+  const googleAdsWebhookUrl = base
     ? `${base}/api/webhooks/google-ads/${workspaceId}`
     : `/api/webhooks/google-ads/${workspaceId}`;
+  const webFormWebhookUrl = base
+    ? `${base}/api/webhooks/web-form/${workspaceId}`
+    : `/api/webhooks/web-form/${workspaceId}`;
 
-  const googleAdsData: GoogleAdsCardData = integration
+  const googleAdsData: GoogleAdsCardData = googleAdsIntegration
     ? {
         connected: true,
-        accountEmail: integration.oauth?.accountEmail ?? null,
-        webhookUrl,
-        webhookKey: integration.webhookKey,
-        status: integration.status as "active" | "paused",
-        lastEventAt: integration.lastEventAt
-          ? new Date(integration.lastEventAt).toISOString()
+        accountEmail: googleAdsIntegration.oauth?.accountEmail ?? null,
+        webhookUrl: googleAdsWebhookUrl,
+        webhookKey: googleAdsIntegration.webhookKey,
+        status: googleAdsIntegration.status as "active" | "paused",
+        lastEventAt: googleAdsIntegration.lastEventAt
+          ? new Date(googleAdsIntegration.lastEventAt).toISOString()
           : null,
-        totalLeadsReceived: integration.totalLeadsReceived ?? 0,
+        totalLeadsReceived: googleAdsIntegration.totalLeadsReceived ?? 0,
       }
-    : { connected: false, webhookUrl };
+    : { connected: false, webhookUrl: googleAdsWebhookUrl };
+
+  const webFormData: WebFormCardData = webFormIntegration
+    ? {
+        connected: true,
+        webhookUrl: webFormWebhookUrl,
+        webhookKey: webFormIntegration.webhookKey,
+        status: webFormIntegration.status as "active" | "paused",
+        lastEventAt: webFormIntegration.lastEventAt
+          ? new Date(webFormIntegration.lastEventAt).toISOString()
+          : null,
+        totalLeadsReceived: webFormIntegration.totalLeadsReceived ?? 0,
+      }
+    : { connected: false, webhookUrl: webFormWebhookUrl };
 
   const workspace = {
     id: String(doc._id),
@@ -127,6 +152,7 @@ export default async function IntegrationsPage({
         ) : null}
 
         <GoogleAdsCard workspaceId={workspace.id} data={googleAdsData} />
+        <WebFormCard workspaceId={workspace.id} data={webFormData} />
       </div>
     </DashboardLayout>
   );
