@@ -1,100 +1,40 @@
 import type { Metadata } from "next";
 import {
-  ArrowUpRight,
+  Banknote,
   Briefcase,
-  CircleDot,
-  Plus,
-  TrendingUp,
+  ClipboardCheck,
+  CreditCard,
+  FileSpreadsheet,
+  FolderKanban,
+  IdCard,
+  LayoutDashboard,
+  Receipt as ReceiptIcon,
+  Sparkles,
+  Truck,
+  UserPlus,
   Users,
 } from "lucide-react";
 import type { WorkspaceColor } from "@/lib/workspace";
 import { requireWorkspaceAccess } from "@/lib/workspace-access";
+import { ROLE_BADGE_CLASS, ROLE_LABEL, type UserRole } from "@/lib/user";
+import { cn } from "@/lib/cn";
 import DashboardLayout from "@/layouts/dashboard-layout";
+import ExecutiveOverview from "./_components/executive-overview";
+import SalesOverview from "./_components/sales-overview";
+import AccountsOverview from "./_components/accounts-overview";
+import ProjectsOverview from "./_components/projects-overview";
+import HrOverview from "./_components/hr-overview";
+import { QuickAction } from "./_components/overview-widgets";
 
 export const metadata: Metadata = {
   title: "Workspace — WSS CRM",
 };
 
-type WorkspaceDetailPageProps = {
+type Props = {
   params: Promise<{ workspaceId: string }>;
 };
 
-const stats = [
-  {
-    label: "Pipeline value",
-    value: "$211,100",
-    delta: "+12%",
-    trend: "up" as const,
-    icon: TrendingUp,
-    accent: "from-violet-500 to-purple-700",
-  },
-  {
-    label: "Open deals",
-    value: "9",
-    delta: "+3",
-    trend: "up" as const,
-    icon: Briefcase,
-    accent: "from-blue-500 to-indigo-700",
-  },
-  {
-    label: "New contacts",
-    value: "24",
-    delta: "+8",
-    trend: "up" as const,
-    icon: Users,
-    accent: "from-emerald-500 to-teal-700",
-  },
-  {
-    label: "Win rate",
-    value: "38%",
-    delta: "-2%",
-    trend: "down" as const,
-    icon: CircleDot,
-    accent: "from-amber-500 to-orange-700",
-  },
-];
-
-const activity = [
-  {
-    who: "You",
-    action: "moved",
-    target: "Hooli",
-    detail: "to Closing",
-    when: "just now",
-  },
-  {
-    who: "Jane Doe",
-    action: "added",
-    target: "Northwind Trading",
-    detail: "as a contact",
-    when: "2h ago",
-  },
-  {
-    who: "Mark Reyes",
-    action: "logged a call with",
-    target: "Wayne Enterprises",
-    detail: "",
-    when: "4h ago",
-  },
-  {
-    who: "You",
-    action: "created",
-    target: "Q3 Outbound",
-    detail: "pipeline",
-    when: "Yesterday",
-  },
-  {
-    who: "Aarav Shah",
-    action: "won",
-    target: "Pied Piper",
-    detail: "· $24,500",
-    when: "Yesterday",
-  },
-];
-
-export default async function WorkspaceDetailPage({
-  params,
-}: WorkspaceDetailPageProps) {
+export default async function WorkspaceOverviewPage({ params }: Props) {
   const { workspaceId } = await params;
 
   const { session, workspace: doc, role } = await requireWorkspaceAccess({
@@ -109,6 +49,12 @@ export default async function WorkspaceDetailPage({
   };
 
   const firstName = session.user.name?.split(" ")[0] ?? "there";
+  const greeting = greetingFor(new Date());
+  const todayLabel = new Intl.DateTimeFormat("en-IN", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date());
 
   return (
     <DashboardLayout
@@ -119,161 +65,200 @@ export default async function WorkspaceDetailPage({
       }}
       workspace={workspace}
     >
-      <div className="mx-auto w-full max-w-6xl space-y-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-              Overview
-            </p>
-            <h1 className="mt-2 text-[26px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
-              Welcome back, {firstName}
-            </h1>
-            <p className="mt-1.5 text-[13px] text-zinc-500 dark:text-zinc-400">
-              Here&apos;s what&apos;s moving in{" "}
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                {workspace.name}
-              </span>{" "}
-              this week.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-gradient-to-r from-primary to-secondary px-3 text-[13px] font-medium text-white shadow-sm shadow-primary/30 transition-all hover:shadow-md hover:shadow-primary/40"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            New deal
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            const up = stat.trend === "up";
-            return (
-              <div
-                key={stat.label}
-                className="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 transition-all hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
-              >
-                <div
+      <div className="mx-auto w-full max-w-7xl space-y-6">
+        {/* Hero */}
+        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/[0.07] via-white to-secondary/[0.06] dark:from-primary/[0.18] dark:via-zinc-900 dark:to-secondary/[0.14]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-gradient-to-br from-primary/30 to-secondary/20 opacity-50 blur-3xl"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-24 -left-12 h-56 w-56 rounded-full bg-gradient-to-tr from-secondary/20 to-primary/15 opacity-40 blur-3xl"
+          />
+          <div className="relative flex flex-wrap items-start justify-between gap-4 p-6">
+            <div className="flex min-w-0 items-start gap-3.5">
+              <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/30">
+                <span
                   aria-hidden
-                  className={`pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-gradient-to-br opacity-[0.07] blur-2xl transition-opacity group-hover:opacity-[0.14] ${stat.accent}`}
+                  className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent"
                 />
-                <div className="relative flex items-start justify-between">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    {stat.label}
-                  </p>
-                  <span
-                    className={`grid h-7 w-7 place-items-center rounded-md bg-gradient-to-br text-white shadow-sm ${stat.accent}`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-                <p className="relative mt-3 text-[22px] font-semibold tabular-nums tracking-tight text-zinc-900 dark:text-white">
-                  {stat.value}
+                <LayoutDashboard className="relative h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  Overview · {todayLabel}
                 </p>
-                <p
-                  className={cnClass(
-                    "relative mt-1 inline-flex items-center gap-1 text-[11px] font-medium",
-                    up
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-rose-600 dark:text-rose-400",
-                  )}
-                >
-                  <ArrowUpRight
-                    className={`h-3 w-3 ${up ? "" : "rotate-90"}`}
-                  />
-                  {stat.delta}
-                  <span className="font-normal text-zinc-500 dark:text-zinc-500">
-                    vs last week
+                <h1 className="mt-1 text-[26px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
+                  {greeting}, {firstName}
+                </h1>
+                <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">
+                  Here&apos;s what&apos;s moving in{" "}
+                  <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                    {workspace.name}
                   </span>
+                  .
                 </p>
               </div>
-            );
-          })}
-        </div>
+            </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-          <div className="lg:col-span-3">
-            <div className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-3.5 dark:border-zinc-800">
-                <h2 className="text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
-                  Recent activity
-                </h2>
-                <button
-                  type="button"
-                  className="text-[12px] font-medium text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                >
-                  View all
-                </button>
-              </div>
-              <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                {activity.map((event, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-3 px-5 py-3 text-[13px]"
-                  >
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-primary to-secondary" />
-                    <div className="flex-1">
-                      <p className="text-zinc-700 dark:text-zinc-300">
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                          {event.who}
-                        </span>{" "}
-                        {event.action}{" "}
-                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {event.target}
-                        </span>
-                        {event.detail ? ` ${event.detail}` : ""}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-[11px] text-zinc-400 dark:text-zinc-500">
-                      {event.when}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+            <div className="flex flex-col items-end gap-2.5">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider",
+                  ROLE_BADGE_CLASS[role],
+                )}
+              >
+                <Sparkles className="h-3 w-3" />
+                {ROLE_LABEL[role]} view
+              </span>
             </div>
           </div>
 
-          <div className="lg:col-span-2">
-            <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
-                Pipeline by stage
-              </h2>
-              <p className="mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400">
-                9 open deals
-              </p>
-              <ul className="mt-4 space-y-3">
-                {[
-                  { label: "Qualified", count: 4, pct: 44 },
-                  { label: "Proposal sent", count: 3, pct: 33 },
-                  { label: "Closing", count: 2, pct: 22 },
-                ].map((row) => (
-                  <li key={row.label}>
-                    <div className="flex items-center justify-between text-[12px]">
-                      <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                        {row.label}
-                      </span>
-                      <span className="tabular-nums text-zinc-500 dark:text-zinc-400">
-                        {row.count}
-                      </span>
-                    </div>
-                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-primary to-secondary"
-                        style={{ width: `${row.pct}%` }}
-                      />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          {/* Quick actions strip */}
+          <QuickActions workspaceId={workspace.id} role={role} />
         </div>
+
+        {/* Role-specific body */}
+        <RoleBody workspaceId={workspace.id} role={role} userId={session.user.id} />
       </div>
     </DashboardLayout>
   );
 }
 
-function cnClass(...parts: (string | false | null | undefined)[]) {
-  return parts.filter(Boolean).join(" ");
+function greetingFor(d: Date): string {
+  const h = d.getHours();
+  if (h < 5) return "Burning the midnight oil";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+async function RoleBody({
+  workspaceId,
+  role,
+  userId,
+}: {
+  workspaceId: string;
+  role: UserRole;
+  userId: string;
+}) {
+  if (role === "owner" || role === "admin") {
+    return <ExecutiveOverview workspaceId={workspaceId} />;
+  }
+  if (role === "sales_manager") {
+    return (
+      <SalesOverview workspaceId={workspaceId} userId={userId} mineOnly={false} />
+    );
+  }
+  if (role === "sales_executive") {
+    return (
+      <SalesOverview workspaceId={workspaceId} userId={userId} mineOnly={true} />
+    );
+  }
+  if (role === "accounts") {
+    return <AccountsOverview workspaceId={workspaceId} />;
+  }
+  if (role === "project_manager") {
+    return (
+      <ProjectsOverview
+        workspaceId={workspaceId}
+        userId={userId}
+        mineOnly={false}
+      />
+    );
+  }
+  if (role === "team_member") {
+    return (
+      <ProjectsOverview
+        workspaceId={workspaceId}
+        userId={userId}
+        mineOnly={true}
+      />
+    );
+  }
+  if (role === "hr") {
+    return <HrOverview workspaceId={workspaceId} />;
+  }
+  // Defensive fallback — shouldn't happen because UserRole is exhaustive,
+  // but typed roles can shift over time.
+  return null;
+}
+
+function QuickActions({
+  workspaceId,
+  role,
+}: {
+  workspaceId: string;
+  role: UserRole;
+}) {
+  const base = `/workspace/${workspaceId}`;
+
+  // Per-role quick actions. Hard-walled to what the user can actually do —
+  // mirrors the role gates in lib/{lead, customer, voucher}.ts and nav.ts.
+  const actions: Array<{ href: string; label: string; icon: typeof Users }> = [];
+
+  if (role === "owner" || role === "admin") {
+    actions.push(
+      { href: `${base}/leads`, label: "New lead", icon: UserPlus },
+      { href: `${base}/customers`, label: "Add customer", icon: Users },
+      { href: `${base}/quotations/new`, label: "New quotation", icon: FileSpreadsheet },
+      { href: `${base}/sale-invoices/new`, label: "New invoice", icon: ReceiptIcon },
+      { href: `${base}/projects`, label: "Projects", icon: FolderKanban },
+      { href: `${base}/employees`, label: "Team", icon: IdCard },
+    );
+  } else if (role === "sales_manager") {
+    actions.push(
+      { href: `${base}/leads`, label: "New lead", icon: UserPlus },
+      { href: `${base}/customers`, label: "Add customer", icon: Users },
+      { href: `${base}/quotations/new`, label: "New quotation", icon: FileSpreadsheet },
+      { href: `${base}/proposals`, label: "AI proposals", icon: Sparkles },
+    );
+  } else if (role === "sales_executive") {
+    actions.push(
+      { href: `${base}/leads`, label: "My leads", icon: UserPlus },
+      { href: `${base}/customers`, label: "My customers", icon: Users },
+      { href: `${base}/quotations/new`, label: "New quotation", icon: FileSpreadsheet },
+    );
+  } else if (role === "accounts") {
+    actions.push(
+      { href: `${base}/sale-invoices/new`, label: "New invoice", icon: ReceiptIcon },
+      { href: `${base}/receipts/new`, label: "Record receipt", icon: Banknote },
+      { href: `${base}/purchase-invoices/new`, label: "New purchase invoice", icon: ClipboardCheck },
+      { href: `${base}/payments/new`, label: "Record payment", icon: CreditCard },
+      { href: `${base}/vendors`, label: "Vendors", icon: Truck },
+      { href: `${base}/recovery`, label: "Recovery", icon: Briefcase },
+    );
+  } else if (role === "project_manager") {
+    actions.push(
+      { href: `${base}/projects`, label: "Open projects", icon: FolderKanban },
+      { href: `${base}/customers`, label: "Customers", icon: Users },
+    );
+  } else if (role === "team_member") {
+    actions.push(
+      { href: `${base}/projects`, label: "My projects", icon: FolderKanban },
+    );
+  } else if (role === "hr") {
+    actions.push(
+      { href: `${base}/employees`, label: "Manage team", icon: IdCard },
+    );
+  }
+
+  if (actions.length === 0) return null;
+
+  return (
+    <div className="relative flex flex-wrap items-center gap-2 border-t border-zinc-100 bg-white/60 px-6 py-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/60">
+      <span className="text-[10.5px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+        Quick actions
+      </span>
+      <span className="text-zinc-300 dark:text-zinc-700">·</span>
+      {actions.map((a) => (
+        <QuickAction key={a.href} href={a.href} icon={a.icon} label={a.label} />
+      ))}
+    </div>
+  );
 }
