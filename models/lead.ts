@@ -1,4 +1,5 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
+import { INTEGRATION_PROVIDERS } from "@/lib/integration";
 import {
   LEAD_ACTIVITY_TYPES,
   LEAD_PRIORITIES,
@@ -40,6 +41,22 @@ const activitySchema = new Schema(
     actor: { type: Schema.Types.ObjectId, ref: "User", required: true },
     at: { type: Date, default: Date.now, required: true },
     data: { type: Schema.Types.Mixed, default: {} },
+  },
+  { _id: false },
+);
+
+const externalSourceSchema = new Schema(
+  {
+    provider: {
+      type: String,
+      enum: INTEGRATION_PROVIDERS,
+      required: true,
+    },
+    externalId: { type: String, required: true },
+    formId: { type: String, default: null },
+    campaignId: { type: String, default: null },
+    gclid: { type: String, default: null },
+    isTest: { type: Boolean, default: false },
   },
   { _id: false },
 );
@@ -117,6 +134,7 @@ const leadSchema = new Schema(
       ref: "Customer",
       default: null,
     },
+    externalSource: { type: externalSourceSchema, default: null },
   },
   { timestamps: true },
 );
@@ -127,6 +145,14 @@ leadSchema.index({ workspace: 1, priority: 1 });
 leadSchema.index({ workspace: 1, nextFollowUpAt: 1 });
 leadSchema.index({ workspace: 1, tags: 1 });
 leadSchema.index({ workspace: 1, convertedAt: 1 });
+// Dedupe webhook-imported leads so Google Ads retries are idempotent.
+leadSchema.index(
+  { workspace: 1, "externalSource.provider": 1, "externalSource.externalId": 1 },
+  {
+    unique: true,
+    partialFilterExpression: { "externalSource.externalId": { $type: "string" } },
+  },
+);
 
 export type ILead = InferSchemaType<typeof leadSchema>;
 

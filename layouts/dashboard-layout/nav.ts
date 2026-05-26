@@ -12,6 +12,7 @@ import {
   IdCard,
   LayoutDashboardIcon,
   ListTodo,
+  PlugZap,
   Receipt,
   ReceiptText,
   RotateCcw,
@@ -103,6 +104,11 @@ export const navSections: NavSection[] = [
     heading: "Workspace Settings",
     items: [
       { href: "/company-details", label: "Company Details", icon: Building2 },
+      {
+        href: "/settings/integrations",
+        label: "Integrations",
+        icon: PlugZap,
+      },
     ],
     restrictedTo: ["owner", "admin"],
   },
