@@ -141,16 +141,27 @@ export default function WorkspaceCard({
   );
 
   if (!accessible) {
+    const isPendingPayment = workspace.status === "pending_payment";
     return (
       <div
         title={
-          workspace.status === "in_review"
-            ? "Pending admin approval"
+          isPendingPayment
+            ? "Complete payment to activate this workspace"
             : `Workspace ${WORKSPACE_STATUS_LABEL[workspace.status].toLowerCase()}`
         }
-        className="group relative -mx-2 flex cursor-default items-center gap-3.5 rounded-xl px-3 py-3"
+        className="group relative -mx-2 cursor-default rounded-xl px-3 py-3"
       >
-        {inner}
+        <div className="flex items-center gap-3.5">{inner}</div>
+        {isPendingPayment ? (
+          <div className="mt-2.5 pl-15">
+            <Link
+              href={`/workspace/${workspace.id}/checkout`}
+              className="inline-flex items-center justify-center rounded-md bg-linear-to-r from-primary to-secondary px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            >
+              Complete payment
+            </Link>
+          </div>
+        ) : null}
       </div>
     );
   }

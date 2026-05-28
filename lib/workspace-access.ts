@@ -92,3 +92,34 @@ export async function requireWorkspaceAccess({
     role,
   };
 }
+
+// Variant for the checkout flow: permits pending_payment status (so the owner
+// can complete payment) but still locks out non-owners and bounces other
+// inaccessible statuses back to /workspace.
+export async function requireCheckoutAccess(
+  workspaceId: string,
+): Promise<WorkspaceAccess> {
+  if (!mongoose.Types.ObjectId.isValid(workspaceId)) notFound();
+
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  await connectDB();
+  const workspace = (await Workspace.findOne({
+    _id: workspaceId,
+    owner: session.user.id,
+  }).lean()) as LeanWorkspace | null;
+
+  if (!workspace) notFound();
+
+  const status = workspace.status ?? "active";
+  if (status !== "pending_payment" && status !== "active") {
+    redirect("/workspace");
+  }
+
+  return {
+    session: session as WorkspaceAccess["session"],
+    workspace,
+    role: "owner",
+  };
+}

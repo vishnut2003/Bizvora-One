@@ -6,7 +6,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronDown, LayoutGrid, LogOut, Shield } from "lucide-react";
+import {
+  ChevronDown,
+  LayoutGrid,
+  LogOut,
+  Shield,
+  UserCircle,
+} from "lucide-react";
 
 type UserMenuProps = {
   name: string | null;
@@ -95,6 +101,14 @@ export default function UserMenu({
         </div>
 
         <div className="my-1 h-px bg-zinc-100 dark:bg-zinc-800" />
+
+        <Link
+          href="/my-account"
+          className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+        >
+          <UserCircle className="h-4 w-4 text-zinc-400" />
+          My account
+        </Link>
 
         <Link
           href="/workspace"

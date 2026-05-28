@@ -36,7 +36,7 @@ const swatch: Record<WorkspaceColor, string> = {
 // Bar/legend fill per workspace status, aligned with the badge palette.
 const STATUS_BAR: Record<WorkspaceStatus, string> = {
   active: "bg-emerald-500",
-  in_review: "bg-amber-500",
+  pending_payment: "bg-amber-500",
   suspended: "bg-zinc-400 dark:bg-zinc-500",
   rejected: "bg-rose-500",
 };
@@ -97,7 +97,7 @@ async function getOverview(): Promise<Overview> {
         },
       },
     ]),
-    Workspace.find({ status: "in_review" })
+    Workspace.find({ status: "pending_payment" })
       .populate<{ owner: { name?: string } | null }>("owner", "name")
       .sort({ createdAt: -1 })
       .limit(6)
@@ -106,7 +106,7 @@ async function getOverview(): Promise<Overview> {
   ]);
 
   const statusCounts = {
-    in_review: 0,
+    pending_payment: 0,
     active: 0,
     rejected: 0,
     suspended: 0,
@@ -243,9 +243,9 @@ export default async function AdminDashboardPage() {
           icon={Building2}
           href="/admin/workspaces"
           hint={
-            data.statusCounts.in_review > 0 ? (
+            data.statusCounts.pending_payment > 0 ? (
               <span className="font-medium text-amber-600 dark:text-amber-400">
-                {data.statusCounts.in_review} awaiting review
+                {data.statusCounts.pending_payment} awaiting review
               </span>
             ) : (
               "All reviewed"

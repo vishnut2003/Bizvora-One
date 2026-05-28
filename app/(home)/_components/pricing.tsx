@@ -2,17 +2,13 @@ import Link from "next/link";
 import Eyebrow from "@/components/eyebrow";
 import { buttonClasses } from "@/components/button";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
-
-type Plan = {
-  name: string;
-  price: string;
-  unit: string;
-  billing: string;
-  description: string;
-  cta: { label: string; href: string };
-  highlighted?: boolean;
-  badge?: string;
-};
+import { connectDB } from "@/config/db";
+import Plan from "@/models/plan";
+import {
+  BILLING_PERIOD_LABEL,
+  formatPaise,
+  type BillingPeriod,
+} from "@/lib/billing";
 
 // Every plan unlocks the entire platform — billing cadence is the only
 // difference. Keep this list in sync with the workspace modules.
@@ -31,28 +27,27 @@ const features: string[] = [
   "Priority support",
 ];
 
-const plans: Plan[] = [
-  {
-    name: "Annual",
-    price: "₹200",
-    unit: "/ user / month",
-    billing: "Billed annually (₹2,400 per user / year)",
-    description: "Complete access to every feature — at our best price.",
-    cta: { label: "Get started", href: "/signup" },
-    badge: "Save 33%",
-    highlighted: true,
-  },
-  {
-    name: "Monthly",
-    price: "₹300",
-    unit: "/ user / month",
-    billing: "Billed monthly — cancel anytime",
-    description: "Complete access to every feature, with no commitment.",
-    cta: { label: "Get started", href: "/signup" },
-  },
-];
+type LeanPlan = {
+  _id: { toString(): string };
+  name: string;
+  description: string;
+  amount: number;
+  currency: string;
+  period: BillingPeriod;
+  badge: string;
+  featured: boolean;
+  sortOrder: number;
+};
 
-export default function Pricing() {
+export default async function Pricing() {
+  await connectDB();
+  const plans = (await Plan.find({
+    visible: true,
+    archived: false,
+  })
+    .sort({ sortOrder: 1, createdAt: 1 })
+    .lean()) as unknown as LeanPlan[];
+
   return (
     <section
       id="pricing"
@@ -75,83 +70,101 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div className="mx-auto mt-14 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-          {plans.map((p) => (
-            <div
-              key={p.name}
-              className={`relative flex flex-col rounded-2xl border bg-white p-7 dark:bg-zinc-900 ${
-                p.highlighted
-                  ? "border-primary/40 shadow-xl shadow-primary/10 dark:border-primary/50"
-                  : "border-zinc-200 dark:border-zinc-800"
-              }`}
+        {plans.length === 0 ? (
+          <p className="mx-auto mt-14 max-w-md text-center text-sm text-zinc-500">
+            Pricing is being configured. Please check back shortly or{" "}
+            <Link
+              href="mailto:info@webspidersolutions.com"
+              className="text-primary"
             >
-              {p.highlighted ? (
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -inset-px -z-10 rounded-2xl bg-linear-to-br from-primary/30 via-transparent to-secondary/30 opacity-60 blur"
-                />
-              ) : null}
+              contact us
+            </Link>
+            .
+          </p>
+        ) : (
+          <div className="mx-auto mt-14 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+            {plans.map((plan) => {
+              const planId = String(plan._id);
+              return (
+                <div
+                  key={planId}
+                  className={`relative flex flex-col rounded-2xl border bg-white p-7 dark:bg-zinc-900 ${
+                    plan.featured
+                      ? "border-primary/40 shadow-xl shadow-primary/10 dark:border-primary/50"
+                      : "border-zinc-200 dark:border-zinc-800"
+                  }`}
+                >
+                  {plan.featured ? (
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute -inset-px -z-10 rounded-2xl bg-linear-to-br from-primary/30 via-transparent to-secondary/30 opacity-60 blur"
+                    />
+                  ) : null}
 
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                  {p.name}
-                </h3>
-                {p.badge ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-linear-to-r from-primary to-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
-                    <Sparkles className="h-2.5 w-2.5" />
-                    {p.badge}
-                  </span>
-                ) : null}
-              </div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                      {plan.name}
+                    </h3>
+                    {plan.badge ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-linear-to-r from-primary to-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
+                        <Sparkles className="h-2.5 w-2.5" />
+                        {plan.badge}
+                      </span>
+                    ) : null}
+                  </div>
 
-              <p className="mt-4 flex items-end gap-1.5">
-                <span className="text-4xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-                  {p.price}
-                </span>
-                <span className="pb-1 text-xs text-zinc-500 dark:text-zinc-500">
-                  {p.unit}
-                </span>
-              </p>
-
-              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-500">
-                {p.billing}
-              </p>
-
-              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-                {p.description}
-              </p>
-
-              <Link
-                href={p.cta.href}
-                className={buttonClasses({
-                  variant: p.highlighted ? "primary" : "secondary",
-                  size: "sm",
-                  className: "mt-6 w-full",
-                })}
-              >
-                {p.cta.label}
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-
-              <p className="mt-7 border-t border-zinc-200 pt-6 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
-                Everything included
-              </p>
-              <ul className="mt-4 space-y-3">
-                {features.map((f) => (
-                  <li
-                    key={f}
-                    className="flex items-start gap-2.5 text-sm text-zinc-700 dark:text-zinc-300"
-                  >
-                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-                      <Check className="h-2.5 w-2.5" />
+                  <p className="mt-4 flex items-end gap-1.5">
+                    <span className="text-4xl font-semibold tracking-tight text-zinc-900 dark:text-white">
+                      {formatPaise(plan.amount, plan.currency)}
                     </span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+                    <span className="pb-1 text-xs text-zinc-500 dark:text-zinc-500">
+                      / user / {BILLING_PERIOD_LABEL[plan.period]}
+                    </span>
+                  </p>
+
+                  <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-500">
+                    {plan.period === "yearly"
+                      ? `Billed annually (${formatPaise(plan.amount, plan.currency)} per user / year)`
+                      : "Billed monthly — cancel anytime"}
+                  </p>
+
+                  <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+                    {plan.description}
+                  </p>
+
+                  <Link
+                    href={`/signup?plan=${planId}`}
+                    className={buttonClasses({
+                      variant: plan.featured ? "primary" : "secondary",
+                      size: "sm",
+                      className: "mt-6 w-full",
+                    })}
+                  >
+                    Get started
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+
+                  <p className="mt-7 border-t border-zinc-200 pt-6 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
+                    Everything included
+                  </p>
+                  <ul className="mt-4 space-y-3">
+                    {features.map((f) => (
+                      <li
+                        key={f}
+                        className="flex items-start gap-2.5 text-sm text-zinc-700 dark:text-zinc-300"
+                      >
+                        <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                          <Check className="h-2.5 w-2.5" />
+                        </span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <p className="mt-10 text-center text-xs text-zinc-500 dark:text-zinc-500">
           Prices in INR (₹), per user, per month, exclusive of taxes. Cancel

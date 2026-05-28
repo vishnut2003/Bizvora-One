@@ -9,7 +9,7 @@ export const WORKSPACE_COLORS = [
 export type WorkspaceColor = (typeof WORKSPACE_COLORS)[number];
 
 export const WORKSPACE_STATUSES = [
-  "in_review",
+  "pending_payment",
   "active",
   "rejected",
   "suspended",
@@ -25,14 +25,14 @@ export function isWorkspaceAccessible(
 }
 
 export const WORKSPACE_STATUS_LABEL: Record<WorkspaceStatus, string> = {
-  in_review: "In review",
+  pending_payment: "Pending payment",
   active: "Active",
   rejected: "Rejected",
   suspended: "Suspended",
 };
 
 export const WORKSPACE_STATUS_BADGE_CLASS: Record<WorkspaceStatus, string> = {
-  in_review:
+  pending_payment:
     "bg-amber-100 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/25",
   active:
     "bg-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/25",

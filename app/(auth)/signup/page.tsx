@@ -25,7 +25,12 @@ const benefits = [
   },
 ];
 
-export default function SignupPage() {
+type Props = {
+  searchParams: Promise<{ plan?: string }>;
+};
+
+export default async function SignupPage({ searchParams }: Props) {
+  const { plan } = await searchParams;
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
       <aside className="relative hidden overflow-hidden border-r border-zinc-200 bg-zinc-50/60 lg:flex lg:w-[45%] lg:flex-col lg:justify-between dark:border-zinc-800 dark:bg-zinc-950">
@@ -126,7 +131,7 @@ export default function SignupPage() {
             </p>
           </div>
 
-          <SignupForm />
+          <SignupForm intendedPlan={plan} />
         </div>
       </main>
     </div>

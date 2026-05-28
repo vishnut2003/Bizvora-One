@@ -9,6 +9,7 @@ import User, { USER_ROLES, type UserRole } from "@/models/user";
 import Workspace from "@/models/workspace";
 import { assignableRolesFor, canManageEmployees } from "@/lib/user";
 import { getActorRole } from "@/lib/workspace-access";
+import { syncSeatQuantity } from "@/lib/billing/seats";
 
 export type AddEmployeeState =
   | {
@@ -127,6 +128,8 @@ export async function addEmployee(
       err instanceof Error ? err.message : "Couldn't add the employee.";
     return { formError: `${message} Please try again.` };
   }
+
+  await syncSeatQuantity(workspaceId);
 
   revalidatePath(`/workspace/${workspaceId}/employees`);
   return { ok: true };
@@ -306,6 +309,8 @@ export async function removeEmployee(
       err instanceof Error ? err.message : "Couldn't remove the employee.";
     return { formError: `${message} Please try again.` };
   }
+
+  await syncSeatQuantity(workspaceId);
 
   revalidatePath(`/workspace/${workspaceId}/employees`);
   return { ok: true };

@@ -8,11 +8,19 @@ import Field from "@/components/field";
 import { ArrowRight } from "lucide-react";
 import { signup, type SignupState } from "../actions";
 
-export default function SignupForm() {
+type SignupFormProps = {
+  intendedPlan?: string;
+};
+
+export default function SignupForm({ intendedPlan }: SignupFormProps) {
   const [state, formAction, pending] = useActionState<SignupState, FormData>(
     signup,
     undefined,
   );
+
+  const googleCallback = intendedPlan
+    ? `/workspace?plan=${encodeURIComponent(intendedPlan)}`
+    : "/workspace";
 
   return (
     <>
@@ -21,7 +29,7 @@ export default function SignupForm() {
         variant="secondary"
         size="sm"
         className="mt-8 h-10 w-full px-3"
-        onClick={() => signIn("google", { callbackUrl: "/workspace" })}
+        onClick={() => signIn("google", { callbackUrl: googleCallback })}
       >
         <GoogleIcon />
         Continue with Google
@@ -34,6 +42,9 @@ export default function SignupForm() {
       </div>
 
       <form action={formAction} className="space-y-4" noValidate>
+        {intendedPlan ? (
+          <input type="hidden" name="plan" value={intendedPlan} />
+        ) : null}
         <Field
           id="name"
           label="Full name"
