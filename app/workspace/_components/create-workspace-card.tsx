@@ -1,11 +1,12 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import Button from "@/components/button";
+import Link from "next/link";
+import Button, { buttonClasses } from "@/components/button";
 import Input from "@/components/input";
 import Popup from "@/components/popup";
 import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Check, ChevronRight, Clock, Plus } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, CreditCard, Plus } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { WORKSPACE_COLORS, type WorkspaceColor } from "@/lib/workspace";
 import {
@@ -47,14 +48,18 @@ export default function CreateWorkspaceCard() {
       setColor("violet");
       setState(undefined);
       setSubmitted(false);
+      setNewWorkspaceId(null);
     }
     setOpen(next);
   };
+
+  const [newWorkspaceId, setNewWorkspaceId] = useState<string | null>(null);
 
   const formAction = (formData: FormData) => {
     startTransition(async () => {
       const result = await createWorkspace(state, formData);
       if (result?.ok) {
+        setNewWorkspaceId(result.workspaceId ?? null);
         setSubmitted(true);
       } else {
         setState(result);
@@ -108,30 +113,50 @@ export default function CreateWorkspaceCard() {
       <Popup open={open} onOpenChange={handleOpenChange}>
         {submitted ? (
           <div className="px-6 pb-6 pt-7 text-center">
-            <span className="relative mx-auto grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 text-white shadow-md shadow-amber-500/25">
+            <span className="relative mx-auto grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/25">
               <span
                 aria-hidden
                 className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent"
               />
-              <Clock className="relative h-6 w-6" />
+              <CreditCard className="relative h-6 w-6" />
             </span>
             <DialogTitle className="mt-4 text-[17px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
-              Workspace created — under review
+              Workspace created
             </DialogTitle>
             <DialogDescription className="mx-auto mt-2 max-w-[34ch] text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-              Your workspace is pending approval. An administrator needs to
-              review and activate it before you can open it. You&apos;ll see it
-              become available here once it&apos;s approved.
+              Complete payment to activate it and start using the workspace.
+              You can do this now or later from the workspace list.
             </DialogDescription>
-            <div className="mt-6 flex justify-center">
+            <div className="mt-6 flex items-center justify-center gap-2">
               <Button
                 type="button"
-                variant="primary"
+                variant="ghost"
                 size="sm"
                 onClick={() => handleOpenChange(false)}
               >
-                Done
+                Later
               </Button>
+              {newWorkspaceId ? (
+                <Link
+                  href={`/workspace/${newWorkspaceId}/checkout`}
+                  className={buttonClasses({
+                    variant: "primary",
+                    size: "sm",
+                  })}
+                >
+                  Complete payment
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              ) : (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => handleOpenChange(false)}
+                >
+                  Done
+                </Button>
+              )}
             </div>
           </div>
         ) : (

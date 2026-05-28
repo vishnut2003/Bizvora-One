@@ -9,6 +9,7 @@ import { WORKSPACE_COLORS, type WorkspaceColor } from "@/lib/workspace";
 export type CreateWorkspaceState =
   | {
       ok?: boolean;
+      workspaceId?: string;
       errors?: { name?: string };
       formError?: string;
     }
@@ -42,18 +43,20 @@ export async function createWorkspace(
 
   await connectDB();
 
+  let workspaceId: string;
   try {
-    await Workspace.create({
+    const created = await Workspace.create({
       name,
       color,
       status: "pending_payment",
       owner: session.user.id,
       members: [{ user: session.user.id, role: "owner" }],
     });
+    workspaceId = String(created._id);
   } catch {
     return { formError: "Couldn't create workspace. Please try again." };
   }
 
   revalidatePath("/workspace");
-  return { ok: true };
+  return { ok: true, workspaceId };
 }
