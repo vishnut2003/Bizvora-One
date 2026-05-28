@@ -22,7 +22,7 @@ import { deleteSalesOrder } from "./actions";
 import DeleteVoucherButton from "@/components/delete-voucher-button";
 
 export const metadata: Metadata = {
-  title: "Sales Orders — WSS CRM",
+  title: "Sales Orders — BizvoraOne",
 };
 
 type LeanSalesOrder = ISalesOrder & {

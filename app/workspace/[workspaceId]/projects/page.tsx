@@ -34,7 +34,7 @@ import ProjectCard, {
 import ProjectsToolbar from "./_components/projects-toolbar";
 
 export const metadata: Metadata = {
-  title: "Projects — WSS CRM",
+  title: "Projects — BizvoraOne",
 };
 
 type ProjectsPageProps = {

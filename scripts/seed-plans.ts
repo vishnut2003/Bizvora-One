@@ -90,7 +90,7 @@ async function main() {
         amount: seed.amount,
         currency: "INR",
       },
-      notes: { source: "wss-crm seed" },
+      notes: { source: "bizvora-one seed" },
     });
     console.log(`  Razorpay plan_id: ${created.id}`);
 

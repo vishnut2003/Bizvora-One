@@ -10,7 +10,7 @@ import VendorForm, {
 } from "../_components/vendor-form";
 
 export const metadata: Metadata = {
-  title: "New Vendor — WSS CRM",
+  title: "New Vendor — BizvoraOne",
 };
 
 type Props = {

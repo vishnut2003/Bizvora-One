@@ -14,7 +14,7 @@ import WorkspaceCard, {
 import CreateWorkspaceCard from "./_components/create-workspace-card";
 
 export const metadata: Metadata = {
-  title: "Choose a workspace — WSS CRM",
+  title: "Choose a workspace — BizvoraOne",
 };
 
 async function getWorkspaces(userId: string): Promise<WorkspaceCardData[]> {
@@ -57,8 +57,8 @@ export default async function WorkspacePage({ searchParams }: Props) {
   const { plan } = await searchParams;
   if (plan && mongoose.Types.ObjectId.isValid(plan)) {
     const store = await cookies();
-    if (!store.get("wss_intended_plan")) {
-      store.set("wss_intended_plan", plan, {
+    if (!store.get("bizvora_intended_plan")) {
+      store.set("bizvora_intended_plan", plan, {
         httpOnly: true,
         sameSite: "lax",
         maxAge: 60 * 60,
@@ -91,9 +91,9 @@ export default async function WorkspacePage({ searchParams }: Props) {
       <header className="relative flex items-center justify-between px-6 py-5 sm:px-8">
         <div className="flex items-baseline text-[18px] font-bold tracking-tight">
           <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            WSS
+            Bizvora
           </span>
-          <span className="ml-1.5 text-zinc-900 dark:text-white">CRM</span>
+          <span className="ml-1.5 text-zinc-900 dark:text-white">One</span>
           <span
             aria-hidden
             className="ml-1 h-1.5 w-1.5 translate-y-[-2px] rounded-full bg-gradient-to-br from-primary to-secondary"

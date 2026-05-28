@@ -30,7 +30,7 @@ import Button from "@/components/button";
 import DeleteVoucherButton from "@/components/delete-voucher-button";
 import { deleteReceipt } from "./actions";
 
-export const metadata: Metadata = { title: "Receipts — WSS CRM" };
+export const metadata: Metadata = { title: "Receipts — BizvoraOne" };
 
 type LeanReceipt = IReceipt & {
   _id: { toString(): string };

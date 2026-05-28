@@ -27,7 +27,7 @@ import HrOverview from "./_components/hr-overview";
 import { QuickAction } from "./_components/overview-widgets";
 
 export const metadata: Metadata = {
-  title: "Workspace — WSS CRM",
+  title: "Workspace — BizvoraOne",
 };
 
 type Props = {

@@ -26,9 +26,9 @@ export default function Header({ user }: HeaderProps) {
             className="flex shrink-0 items-baseline text-[15px] font-bold tracking-tight"
           >
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              WSS
+              Bizvora
             </span>
-            <span className="ml-1 text-zinc-900 dark:text-white">CRM</span>
+            <span className="ml-1 text-zinc-900 dark:text-white">One</span>
             <span
               aria-hidden
               className="ml-0.5 h-1.5 w-1.5 translate-y-[-2px] rounded-full bg-gradient-to-br from-primary to-secondary"

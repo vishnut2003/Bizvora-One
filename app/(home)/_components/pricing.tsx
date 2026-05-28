@@ -74,7 +74,7 @@ export default async function Pricing() {
           <p className="mx-auto mt-14 max-w-md text-center text-sm text-zinc-500">
             Pricing is being configured. Please check back shortly or{" "}
             <Link
-              href="mailto:info@webspidersolutions.com"
+              href="mailto:info@bizvoraone.com"
               className="text-primary"
             >
               contact us

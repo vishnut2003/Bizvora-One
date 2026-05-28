@@ -17,7 +17,7 @@ import ProjectCalendar, {
 } from "./_components/project-calendar";
 
 export const metadata: Metadata = {
-  title: "Project Overview — WSS CRM",
+  title: "Project Overview — BizvoraOne",
 };
 
 type Props = {

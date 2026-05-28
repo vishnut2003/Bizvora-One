@@ -7,7 +7,7 @@ import { Check } from "lucide-react";
 import LoginForm from "./_components/login-form";
 
 export const metadata: Metadata = {
-  title: "Sign in — WSS CRM",
+  title: "Sign in — BizvoraOne",
   description: "Sign in to your sales workspace.",
 };
 
@@ -114,7 +114,7 @@ export default function LoginPage() {
 
           <div className="mt-8 lg:mt-0">
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-white">
-              Sign in to WSS CRM
+              Sign in to BizvoraOne
             </h1>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
               New here?{" "}

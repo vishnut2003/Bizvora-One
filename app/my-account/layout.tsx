@@ -4,7 +4,7 @@ import { auth } from "@/config/auth";
 import AccountLayout from "@/layouts/account-layout";
 
 export const metadata: Metadata = {
-  title: "My account — WSS CRM",
+  title: "My account — BizvoraOne",
 };
 
 export default async function MyAccountRouteLayout({

@@ -11,7 +11,7 @@ import DashboardLayout from "@/layouts/dashboard-layout";
 import VendorForm from "../../_components/vendor-form";
 
 export const metadata: Metadata = {
-  title: "Edit Vendor — WSS CRM",
+  title: "Edit Vendor — BizvoraOne",
 };
 
 type Props = {

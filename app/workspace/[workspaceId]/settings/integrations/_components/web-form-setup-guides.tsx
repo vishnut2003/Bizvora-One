@@ -104,7 +104,7 @@ function FluentGuide({ url, k }: { url: string; k: string }) {
           <em>Webhook</em>.
         </li>
         <li>
-          <strong>Name:</strong> <Code>WSS CRM</Code>
+          <strong>Name:</strong> <Code>BizvoraOne</Code>
           <br />
           <strong>Request URL:</strong> <Code>{url}</Code>
           <br />
@@ -205,7 +205,7 @@ function GravityGuide({ url, k }: { url: string; k: string }) {
       <Steps>
         <li>Form → <em>Settings → Webhooks → Add New</em>.</li>
         <li>
-          <strong>Name:</strong> <Code>WSS CRM</Code>
+          <strong>Name:</strong> <Code>BizvoraOne</Code>
           <br />
           <strong>Request URL:</strong> <Code>{url}</Code>
           <br />
@@ -240,7 +240,7 @@ function WPFormsGuide({ url, k }: { url: string; k: string }) {
           Edit the form → <em>Settings → Webhooks → Add New Webhook</em>.
         </li>
         <li>
-          <strong>Name:</strong> <Code>WSS CRM</Code>
+          <strong>Name:</strong> <Code>BizvoraOne</Code>
           <br />
           <strong>Request URL:</strong> <Code>{url}</Code>
           <br />

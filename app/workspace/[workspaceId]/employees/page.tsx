@@ -18,7 +18,7 @@ import EditEmployeeButton from "./_components/edit-employee-button";
 import RemoveEmployeeButton from "./_components/remove-employee-button";
 
 export const metadata: Metadata = {
-  title: "Employees — WSS CRM",
+  title: "Employees — BizvoraOne",
 };
 
 type EmployeesPageProps = {

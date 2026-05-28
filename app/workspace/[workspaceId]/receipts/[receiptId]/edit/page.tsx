@@ -17,7 +17,7 @@ import type { WorkspaceColor } from "@/lib/workspace";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import ReceiptForm from "../../_components/receipt-form";
 
-export const metadata: Metadata = { title: "Edit Receipt — WSS CRM" };
+export const metadata: Metadata = { title: "Edit Receipt — BizvoraOne" };
 
 type LeanReceipt = IReceipt & { _id: { toString(): string } };
 

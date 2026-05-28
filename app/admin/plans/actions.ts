@@ -73,7 +73,7 @@ export async function createPlan(
       amount,
       period,
       interval: intervalInput,
-      notes: { source: "wss-crm admin" },
+      notes: { source: "bizvora-one admin" },
     });
   } catch (err) {
     console.error("[admin/plans] razorpay create failed:", err);

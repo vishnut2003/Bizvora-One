@@ -13,7 +13,7 @@ type Testimonial = {
 const testimonials: Testimonial[] = [
   {
     quote:
-      "We replaced three tools with WSS CRM. Sales sees the pipeline, accounts sees the invoices, and I see the whole business — no more spreadsheets.",
+      "We replaced three tools with BizvoraOne. Sales sees the pipeline, accounts sees the invoices, and I see the whole business — no more spreadsheets.",
     name: "Mira Ramirez",
     role: "Founder",
     company: "Northwind Trading",
@@ -55,7 +55,7 @@ export default function Testimonials() {
             Real teams. Real workspaces. Real results.
           </h2>
           <p className="mt-4 text-balance text-zinc-600 dark:text-zinc-400">
-            From two-person startups to 200-person sales orgs, WSS CRM is the
+            From two-person startups to 200-person sales orgs, BizvoraOne is the
             workspace teams actually open every morning.
           </p>
         </div>

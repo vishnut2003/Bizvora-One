@@ -7,7 +7,7 @@ import { serializeChat, type ChatDocLike } from "./_lib/serialize";
 import ChatList from "./_components/chat-list";
 
 export const metadata: Metadata = {
-  title: "Proposals — WSS CRM",
+  title: "Proposals — BizvoraOne",
 };
 
 type ProposalsPageProps = {

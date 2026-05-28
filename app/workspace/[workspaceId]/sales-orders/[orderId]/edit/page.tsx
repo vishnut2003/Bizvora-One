@@ -16,7 +16,7 @@ import DashboardLayout from "@/layouts/dashboard-layout";
 import SalesOrderForm from "../../_components/sales-order-form";
 
 export const metadata: Metadata = {
-  title: "Edit Sales Order — WSS CRM",
+  title: "Edit Sales Order — BizvoraOne",
 };
 
 type LeanSO = ISalesOrder & { _id: { toString(): string } };

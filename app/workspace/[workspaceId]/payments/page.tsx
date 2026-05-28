@@ -29,7 +29,7 @@ import Button from "@/components/button";
 import DeleteVoucherButton from "@/components/delete-voucher-button";
 import { deletePayment } from "./actions";
 
-export const metadata: Metadata = { title: "Payments — WSS CRM" };
+export const metadata: Metadata = { title: "Payments — BizvoraOne" };
 
 type LeanPayment = IPayment & {
   _id: { toString(): string };

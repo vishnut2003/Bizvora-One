@@ -21,7 +21,7 @@ import VoucherCard from "@/components/voucher-card";
 import DeleteVoucherButton from "@/components/delete-voucher-button";
 import { deletePurchaseInvoice } from "./actions";
 
-export const metadata: Metadata = { title: "Purchase Invoices — WSS CRM" };
+export const metadata: Metadata = { title: "Purchase Invoices — BizvoraOne" };
 
 type LeanPI = IPurchaseInvoice & {
   _id: { toString(): string };

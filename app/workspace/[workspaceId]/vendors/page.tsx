@@ -31,7 +31,7 @@ import Button from "@/components/button";
 import RemoveVendorButton from "./_components/remove-vendor-button";
 
 export const metadata: Metadata = {
-  title: "Vendors — WSS CRM",
+  title: "Vendors — BizvoraOne",
 };
 
 type VendorsPageProps = {

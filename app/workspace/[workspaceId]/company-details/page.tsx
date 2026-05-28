@@ -11,7 +11,7 @@ import CompanyDetailsForm, {
 } from "./_components/company-details-form";
 
 export const metadata: Metadata = {
-  title: "Company Details — WSS CRM",
+  title: "Company Details — BizvoraOne",
 };
 
 type CompanyDetailsPageProps = {

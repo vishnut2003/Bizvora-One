@@ -20,7 +20,7 @@ import VoucherCard from "@/components/voucher-card";
 import DeleteVoucherButton from "@/components/delete-voucher-button";
 import { deletePurchaseOrder } from "./actions";
 
-export const metadata: Metadata = { title: "Purchase Orders — WSS CRM" };
+export const metadata: Metadata = { title: "Purchase Orders — BizvoraOne" };
 
 type LeanPO = IPurchaseOrder & {
   _id: { toString(): string };

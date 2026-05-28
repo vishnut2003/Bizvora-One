@@ -9,8 +9,8 @@ const faqs: Item[] = [
     a: "A workspace is your isolated tenant — your customers, deals, projects, vouchers, and employees all live inside it. Invite teammates, assign roles, and nothing leaks across workspaces.",
   },
   {
-    q: "How is WSS CRM different from a regular CRM?",
-    a: "Most CRMs stop at deals and contacts. WSS CRM also ships with Projects, Tally-style Accounts (sales/purchase vouchers, receipts, payments), and HR — all wired together in one workspace.",
+    q: "How is BizvoraOne different from a regular CRM?",
+    a: "Most CRMs stop at deals and contacts. BizvoraOne also ships with Projects, Tally-style Accounts (sales/purchase vouchers, receipts, payments), and HR — all wired together in one workspace.",
   },
   {
     q: "What can the AI Proposals feature actually do?",

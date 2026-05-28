@@ -57,7 +57,7 @@ import type {
 import type { ConvertibleLead } from "./_components/lead-picker-popup";
 
 export const metadata: Metadata = {
-  title: "Customers — WSS CRM",
+  title: "Customers — BizvoraOne",
 };
 
 type CustomersPageProps = {

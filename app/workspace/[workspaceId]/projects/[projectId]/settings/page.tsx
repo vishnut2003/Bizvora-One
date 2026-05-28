@@ -16,7 +16,7 @@ import EditProjectForm, {
 } from "../_components/edit-project-form";
 
 export const metadata: Metadata = {
-  title: "Project Settings — WSS CRM",
+  title: "Project Settings — BizvoraOne",
 };
 
 type Props = {

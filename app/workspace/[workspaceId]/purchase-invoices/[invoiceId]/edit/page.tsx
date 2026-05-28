@@ -14,7 +14,7 @@ import type { WorkspaceColor } from "@/lib/workspace";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import PurchaseInvoiceForm from "../../_components/purchase-invoice-form";
 
-export const metadata: Metadata = { title: "Edit Purchase Invoice — WSS CRM" };
+export const metadata: Metadata = { title: "Edit Purchase Invoice — BizvoraOne" };
 
 type LeanPI = IPurchaseInvoice & { _id: { toString(): string } };
 

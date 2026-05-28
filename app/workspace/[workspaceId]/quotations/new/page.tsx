@@ -18,7 +18,7 @@ import {
 } from "../_lib/form-defaults";
 
 export const metadata: Metadata = {
-  title: "New quotation — WSS CRM",
+  title: "New quotation — BizvoraOne",
 };
 
 type Props = {

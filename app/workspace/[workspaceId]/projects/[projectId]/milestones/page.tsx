@@ -13,7 +13,7 @@ import MilestonesList, {
 } from "./_components/milestones-list";
 
 export const metadata: Metadata = {
-  title: "Project Milestones — WSS CRM",
+  title: "Project Milestones — BizvoraOne",
 };
 
 type Props = {

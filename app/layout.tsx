@@ -11,7 +11,7 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  title: "WSS CRM — A workspace for every team",
+  title: "BizvoraOne — A workspace for every team",
   description:
     "Create your own workspace and run your customer relationships your way. Pipelines, contacts, deals, and automations — built for teams of any size.",
 };

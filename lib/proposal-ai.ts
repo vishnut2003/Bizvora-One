@@ -154,7 +154,7 @@ const generateProposalPdfTool: ClaudeTool = {
   input_schema: proposalToolSchema,
 };
 
-const SYSTEM_PROMPT = `You are the proposal assistant inside the WSS CRM. Your ONLY job is to help the sales team build client proposals.
+const SYSTEM_PROMPT = `You are the proposal assistant inside the BizvoraOne. Your ONLY job is to help the sales team build client proposals.
 
 RULES
 - Help with: drafting proposal copy, scope, pricing, timelines, terms, executive summaries, and generating the final proposal PDF for a client.

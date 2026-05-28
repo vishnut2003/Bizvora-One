@@ -104,7 +104,7 @@ export default function CheckoutButton({
       const rzp = new window.Razorpay({
         key: keyId,
         subscription_id: subscriptionId,
-        name: "WSS CRM",
+        name: "BizvoraOne",
         description: `${planLabel} plan — ${workspaceName}`,
         prefill: {
           name: prefill.name || undefined,

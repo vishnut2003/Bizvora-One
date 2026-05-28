@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 import SignupForm from "./_components/signup-form";
 
 export const metadata: Metadata = {
-  title: "Sign up — WSS CRM",
+  title: "Sign up — BizvoraOne",
   description: "Create your sales workspace in seconds. Free during beta.",
 };
 

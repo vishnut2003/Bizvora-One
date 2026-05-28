@@ -58,7 +58,7 @@ import type {
 } from "./_components/lead-form-popup";
 
 export const metadata: Metadata = {
-  title: "Leads & Prospects — WSS CRM",
+  title: "Leads & Prospects — BizvoraOne",
 };
 
 type LeadsPageProps = {

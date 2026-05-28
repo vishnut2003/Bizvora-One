@@ -3,7 +3,7 @@ import AdminLayout from "@/layouts/admin-layout";
 import { requirePlatformAdmin } from "@/lib/platform-admin";
 
 export const metadata: Metadata = {
-  title: "Admin — WSS CRM",
+  title: "Admin — BizvoraOne",
 };
 
 export default async function AdminRouteLayout({

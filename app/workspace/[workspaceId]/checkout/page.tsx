@@ -15,7 +15,7 @@ import {
 import CheckoutButton from "./_components/checkout-button";
 
 export const metadata: Metadata = {
-  title: "Complete payment — WSS CRM",
+  title: "Complete payment — BizvoraOne",
 };
 
 type Props = {
@@ -65,7 +65,7 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
   }
 
   const cookieStore = await cookies();
-  const cookiePlan = cookieStore.get("wss_intended_plan")?.value;
+  const cookiePlan = cookieStore.get("bizvora_intended_plan")?.value;
 
   const selected =
     plans.find((p) => String(p._id) === planQuery) ??

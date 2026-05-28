@@ -24,7 +24,7 @@ import type {
 } from "../../_components/quotation-pdf-document";
 
 export const metadata: Metadata = {
-  title: "Quotation PDF — WSS CRM",
+  title: "Quotation PDF — BizvoraOne",
 };
 
 type Props = {

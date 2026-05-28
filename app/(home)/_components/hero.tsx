@@ -117,7 +117,7 @@ export default function Hero() {
           </h1>
 
           <p className="mx-auto mt-5 max-w-2xl text-balance text-base leading-7 text-zinc-600 sm:mt-6 sm:text-lg sm:leading-8 dark:text-zinc-400">
-            WSS CRM unifies your customers, deals, proposals, projects, vouchers,
+            BizvoraOne unifies your customers, deals, proposals, projects, vouchers,
             and team — in a single workspace your whole company can use.
           </p>
 

@@ -10,7 +10,7 @@ import type { WorkspaceColor } from "@/lib/workspace";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import ReceiptForm from "../_components/receipt-form";
 
-export const metadata: Metadata = { title: "New Receipt — WSS CRM" };
+export const metadata: Metadata = { title: "New Receipt — BizvoraOne" };
 
 type Props = {
   params: Promise<{ workspaceId: string }>;

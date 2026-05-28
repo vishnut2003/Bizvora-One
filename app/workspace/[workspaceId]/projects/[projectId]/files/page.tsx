@@ -22,7 +22,7 @@ import AddFileControls from "./_components/add-file-controls";
 import DeleteFileButton from "./_components/delete-file-button";
 
 export const metadata: Metadata = {
-  title: "Project Files — WSS CRM",
+  title: "Project Files — BizvoraOne",
 };
 
 type Props = {

@@ -7,7 +7,7 @@ import type { WorkspaceColor } from "@/lib/workspace";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import SalesInvoiceForm from "../_components/sales-invoice-form";
 
-export const metadata: Metadata = { title: "New Sale Invoice — WSS CRM" };
+export const metadata: Metadata = { title: "New Sale Invoice — BizvoraOne" };
 
 type Props = { params: Promise<{ workspaceId: string }> };
 

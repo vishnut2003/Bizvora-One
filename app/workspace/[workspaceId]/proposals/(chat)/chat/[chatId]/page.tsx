@@ -10,7 +10,7 @@ import {
 } from "../../../_lib/serialize";
 
 export const metadata: Metadata = {
-  title: "Proposal chat — WSS CRM",
+  title: "Proposal chat — BizvoraOne",
 };
 
 type Props = {

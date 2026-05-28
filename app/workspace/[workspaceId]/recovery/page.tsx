@@ -26,7 +26,7 @@ import DashboardLayout from "@/layouts/dashboard-layout";
 import Button from "@/components/button";
 import FollowUpButton from "./_components/follow-up-button";
 
-export const metadata: Metadata = { title: "Recovery — WSS CRM" };
+export const metadata: Metadata = { title: "Recovery — BizvoraOne" };
 
 type LeanInvoice = ISalesInvoice & {
   _id: { toString(): string };

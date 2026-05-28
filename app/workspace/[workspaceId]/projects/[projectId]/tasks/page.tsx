@@ -16,7 +16,7 @@ import TasksBoard, {
 } from "./_components/tasks-board";
 
 export const metadata: Metadata = {
-  title: "Project Tasks — WSS CRM",
+  title: "Project Tasks — BizvoraOne",
 };
 
 type Props = {

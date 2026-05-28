@@ -14,7 +14,7 @@ import type { WorkspaceColor } from "@/lib/workspace";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import PurchaseOrderForm from "../../_components/purchase-order-form";
 
-export const metadata: Metadata = { title: "Edit Purchase Order — WSS CRM" };
+export const metadata: Metadata = { title: "Edit Purchase Order — BizvoraOne" };
 
 type LeanPO = IPurchaseOrder & { _id: { toString(): string } };
 type Props = {

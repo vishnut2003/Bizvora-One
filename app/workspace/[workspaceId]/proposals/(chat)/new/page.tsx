@@ -3,7 +3,7 @@ import { requireWorkspaceAccess } from "@/lib/workspace-access";
 import ChatWorkspace from "../../_components/chat-workspace";
 
 export const metadata: Metadata = {
-  title: "New proposal — WSS CRM",
+  title: "New proposal — BizvoraOne",
 };
 
 type Props = {

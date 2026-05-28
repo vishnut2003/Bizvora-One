@@ -20,7 +20,7 @@ export type SignupState =
   | undefined;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const INTENT_COOKIE = "wss_intended_plan";
+const INTENT_COOKIE = "bizvora_intended_plan";
 const INTENT_COOKIE_MAX_AGE = 60 * 60; // 1 hour
 
 function isDuplicateKeyError(err: unknown): boolean {

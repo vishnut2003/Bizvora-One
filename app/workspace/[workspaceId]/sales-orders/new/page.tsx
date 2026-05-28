@@ -8,7 +8,7 @@ import DashboardLayout from "@/layouts/dashboard-layout";
 import SalesOrderForm from "../_components/sales-order-form";
 
 export const metadata: Metadata = {
-  title: "New Sales Order — WSS CRM",
+  title: "New Sales Order — BizvoraOne",
 };
 
 type Props = { params: Promise<{ workspaceId: string }> };

@@ -11,7 +11,7 @@ import ProjectTeamManager, {
 } from "../_components/project-team-manager";
 
 export const metadata: Metadata = {
-  title: "Project Team — WSS CRM",
+  title: "Project Team — BizvoraOne",
 };
 
 type Props = {

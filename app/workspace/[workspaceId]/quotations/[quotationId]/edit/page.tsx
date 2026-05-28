@@ -26,7 +26,7 @@ import {
 } from "../../_lib/serialize";
 
 export const metadata: Metadata = {
-  title: "Edit quotation — WSS CRM",
+  title: "Edit quotation — BizvoraOne",
 };
 
 type Props = {

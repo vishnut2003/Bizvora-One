@@ -33,7 +33,7 @@ import QuotationsToolbar from "./_components/quotations-toolbar";
 import Button from "@/components/button";
 
 export const metadata: Metadata = {
-  title: "Quotations — WSS CRM",
+  title: "Quotations — BizvoraOne",
 };
 
 type QuotationsPageProps = {

@@ -14,7 +14,7 @@ import WebFormCard, {
 } from "./_components/web-form-card";
 
 export const metadata: Metadata = {
-  title: "Integrations — WSS CRM",
+  title: "Integrations — BizvoraOne",
 };
 
 type IntegrationsPageProps = {

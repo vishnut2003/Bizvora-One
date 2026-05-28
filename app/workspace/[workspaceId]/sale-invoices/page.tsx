@@ -23,7 +23,7 @@ import DeleteVoucherButton from "@/components/delete-voucher-button";
 import { deleteSalesInvoice } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Sale Invoices — WSS CRM",
+  title: "Sale Invoices — BizvoraOne",
 };
 
 type LeanInvoice = ISalesInvoice & {
