@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Plus, ReceiptText } from "lucide-react";
+import { FileText, Plus, ReceiptText } from "lucide-react";
 import type { FilterQuery } from "mongoose";
 import { format } from "date-fns";
 import SalesInvoice, { type ISalesInvoice } from "@/models/sales-invoice";
@@ -19,8 +19,6 @@ import type { WorkspaceColor } from "@/lib/workspace";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import Button from "@/components/button";
 import VoucherCard from "@/components/voucher-card";
-import DeleteVoucherButton from "@/components/delete-voucher-button";
-import { deleteSalesInvoice } from "./actions";
 
 export const metadata: Metadata = {
   title: "Sale Invoices — BizvoraOne",
@@ -291,13 +289,14 @@ export default async function SaleInvoicesPage({
                   canEdit={canManage}
                   hint={hint}
                   extra={
-                    canManage ? (
-                      <DeleteVoucherButton
-                        label="Remove sales invoice"
-                        entityName={inv.number}
-                        onDelete={deleteSalesInvoice.bind(null, workspace.id, id)}
-                      />
-                    ) : null
+                    <Link
+                      href={`/workspace/${workspace.id}/sale-invoices/${id}/pdf`}
+                      aria-label={`View PDF for invoice ${inv.number}`}
+                      className="inline-flex h-8 items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2.5 text-[12px] font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800/70"
+                    >
+                      <FileText className="h-3 w-3" />
+                      PDF
+                    </Link>
                   }
                 />
               );
