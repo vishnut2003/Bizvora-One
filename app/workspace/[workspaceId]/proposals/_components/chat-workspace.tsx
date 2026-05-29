@@ -103,6 +103,10 @@ export default function ChatWorkspace({
   const [mentionLoading, setMentionLoading] = useState(false);
   const [mentionActiveIdx, setMentionActiveIdx] = useState(0);
   const mentionSearchSeq = useRef(0);
+  // Anchor position of an `@`-token the user dismissed with Escape. While the
+  // caret stays inside that same token we must not re-open the popover, even
+  // though the trigger text is still in the textarea.
+  const dismissedMentionStart = useRef<number | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -159,6 +163,15 @@ export default function ChatWorkspace({
 
   const syncMention = useCallback((value: string, caret: number) => {
     const next = findActiveMentionQuery(value, caret);
+    // If the user dismissed the picker for this exact `@`-token with Escape,
+    // suppress it until the caret leaves that token (or the `@` is deleted).
+    if (next && dismissedMentionStart.current === next.start) {
+      setMention(null);
+      setMentionResults([]);
+      setMentionActiveIdx(0);
+      return;
+    }
+    dismissedMentionStart.current = null;
     setMention(next);
     if (!next) {
       setMentionResults([]);
@@ -215,6 +228,7 @@ export default function ChatWorkspace({
     setMention(null);
     setMentionResults([]);
     setMentionActiveIdx(0);
+    dismissedMentionStart.current = null;
 
     // Restore focus + caret position after React commits the new value.
     const caret = before.length + insertion.length;
@@ -295,7 +309,12 @@ export default function ChatWorkspace({
       }
       if (e.key === "Escape") {
         e.preventDefault();
+        // Remember this anchor so the onKeyUp/onClick caret-sync handlers
+        // don't immediately reopen the popover over the same `@query`.
+        dismissedMentionStart.current = mention.start;
         setMention(null);
+        setMentionResults([]);
+        setMentionActiveIdx(0);
         return;
       }
       if ((e.key === "Enter" || e.key === "Tab") && mentionResults.length > 0) {
