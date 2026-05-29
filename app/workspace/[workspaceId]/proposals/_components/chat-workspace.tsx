@@ -89,6 +89,10 @@ export default function ChatWorkspace({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pdfWidth, setPdfWidth] = useState(40);
   const [isPdfOpen, setIsPdfOpen] = useState(false);
+  // True only while the user is actively dragging the divider. Mirrors the
+  // ref below — needed so we can render a transparent overlay that prevents
+  // the PDF iframe from swallowing mousemove events mid-drag.
+  const [isDraggingPdf, setIsDraggingPdf] = useState(false);
 
   // Mention picker state: when the caret sits inside an `@query` token we
   // show a small popover with workspace leads + customers to pick from.
@@ -130,33 +134,57 @@ export default function ChatWorkspace({
   }, [input]);
 
   useEffect(() => {
-    function onMove(e: globalThis.MouseEvent) {
+    let rafId: number | null = null;
+    let pendingClientX = 0;
+
+    function flush() {
+      rafId = null;
       if (!isResizingPdf.current) return;
       const container = containerRef.current;
-      if (!container) return;
-      const rect = container.getBoundingClientRect();
+      // The aside's `w: var(--pdf-w)` resolves against its containing block —
+      // the flex shell that holds BOTH the chat section and the aside. We
+      // must measure against that same element, otherwise the divisor (chat
+      // width) shrinks as the aside grows and the math oscillates → jerk.
+      const shell = container?.parentElement ?? null;
+      if (!shell) return;
+      const rect = shell.getBoundingClientRect();
       if (rect.width <= 0) return;
-      const pxFromRight = rect.right - e.clientX;
+      const pxFromRight = rect.right - pendingClientX;
       const percent = (pxFromRight / rect.width) * 100;
       setPdfWidth(Math.max(20, Math.min(70, percent)));
+    }
+
+    function onMove(e: globalThis.MouseEvent) {
+      if (!isResizingPdf.current) return;
+      pendingClientX = e.clientX;
+      // Coalesce mousemove bursts into one update per animation frame. Direct
+      // setState every move event caused visible stutter on long messages.
+      if (rafId === null) rafId = requestAnimationFrame(flush);
     }
     function onUp() {
       if (!isResizingPdf.current) return;
       isResizingPdf.current = false;
+      setIsDraggingPdf(false);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
     }
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
     return () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
+      if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, []);
 
   function startPdfResize(e: ReactMouseEvent<HTMLDivElement>) {
     e.preventDefault();
     isResizingPdf.current = true;
+    setIsDraggingPdf(true);
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
   }
@@ -499,6 +527,16 @@ export default function ChatWorkspace({
 
         <ProposalPdfViewer proposal={activeProposal} />
       </aside>
+
+      {/* Fullscreen capture layer while dragging the PDF divider. Without this
+          the iframe inside ProposalPdfViewer swallows mousemove events the
+          moment the cursor crosses it, making the drag stutter and jump. */}
+      {isDraggingPdf ? (
+        <div
+          aria-hidden
+          className="fixed inset-0 z-60 cursor-col-resize"
+        />
+      ) : null}
     </>
   );
 }
