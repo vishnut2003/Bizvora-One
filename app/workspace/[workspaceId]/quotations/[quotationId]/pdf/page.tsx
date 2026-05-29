@@ -77,7 +77,7 @@ export default async function QuotationPdfPage({ params }: Props) {
   const backLink = (
     <Link
       href={`/workspace/${workspace.id}/quotations/${quotation.id}/edit`}
-      className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-white"
+      className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-white"
       aria-label="Back to quotation"
     >
       <ArrowLeft className="h-4 w-4" />
@@ -85,31 +85,18 @@ export default async function QuotationPdfPage({ params }: Props) {
   );
 
   const header = (
-    <div className="flex items-center gap-3">
+    <div className="flex shrink-0 items-center gap-3 border-b border-zinc-100 bg-white/60 px-4 py-2.5 backdrop-blur sm:px-6 lg:px-8 dark:border-zinc-800 dark:bg-zinc-950/50">
       {backLink}
-      <div className="flex items-start gap-3">
-        <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/30">
-          <span
-            aria-hidden
-            className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent"
-          />
-          <FileSpreadsheet className="relative h-4 w-4" />
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-linear-to-br from-primary to-secondary text-white shadow-sm shadow-primary/30">
+        <FileSpreadsheet className="h-3.5 w-3.5" />
+      </span>
+      <div className="flex min-w-0 flex-1 items-baseline gap-2">
+        <h1 className="truncate text-[14px] font-semibold text-zinc-900 dark:text-white">
+          {quotation.number}
+        </h1>
+        <span className="truncate text-[12px] text-zinc-500 dark:text-zinc-400">
+          · {quotation.recipient.name}
         </span>
-        <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-            {quotation.number}
-          </p>
-          <h1 className="mt-1 text-[22px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
-            Quotation PDF
-          </h1>
-          <p className="mt-0.5 text-[12.5px] text-zinc-500 dark:text-zinc-400">
-            Preview and download the quotation for{" "}
-            <span className="font-medium text-zinc-700 dark:text-zinc-300">
-              {quotation.recipient.name}
-            </span>
-            .
-          </p>
-        </div>
       </div>
     </div>
   );
@@ -126,9 +113,11 @@ export default async function QuotationPdfPage({ params }: Props) {
           image: session.user.image,
         }}
         workspace={workspace}
+        fullBleed
       >
-        <div className="mx-auto w-full max-w-3xl space-y-5 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex h-full min-h-0 flex-col">
           {header}
+          <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
 
           <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-6 dark:border-amber-900/50 dark:bg-amber-950/20">
             <div className="flex items-start gap-3.5">
@@ -172,6 +161,7 @@ export default async function QuotationPdfPage({ params }: Props) {
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </DashboardLayout>
@@ -240,10 +230,13 @@ export default async function QuotationPdfPage({ params }: Props) {
         image: session.user.image,
       }}
       workspace={workspace}
+      fullBleed
     >
-      <div className="mx-auto w-full max-w-3xl space-y-5 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="flex h-full min-h-0 flex-col">
         {header}
-        <QuotationPdfViewer company={company} quotation={pdfData} />
+        <div className="flex min-h-0 flex-1 flex-col px-4 py-4 sm:px-6 lg:px-8">
+          <QuotationPdfViewer company={company} quotation={pdfData} />
+        </div>
       </div>
     </DashboardLayout>
   );
