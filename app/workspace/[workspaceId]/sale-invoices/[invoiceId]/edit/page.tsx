@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import mongoose from "mongoose";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, FileText, Pencil } from "lucide-react";
 import SalesInvoice, { type ISalesInvoice } from "@/models/sales-invoice";
 import { requireWorkspaceAccess } from "@/lib/workspace-access";
 import {
@@ -14,6 +14,7 @@ import {
 import type { WorkspaceColor } from "@/lib/workspace";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import SalesInvoiceForm from "../../_components/sales-invoice-form";
+import ConversionSuccessPopup from "../../_components/conversion-success-popup";
 
 export const metadata: Metadata = { title: "Edit Sale Invoice — BizvoraOne" };
 
@@ -21,10 +22,15 @@ type LeanSI = ISalesInvoice & { _id: { toString(): string } };
 
 type Props = {
   params: Promise<{ workspaceId: string; invoiceId: string }>;
+  searchParams: Promise<{ fromOrder?: string }>;
 };
 
-export default async function EditSaleInvoicePage({ params }: Props) {
+export default async function EditSaleInvoicePage({
+  params,
+  searchParams,
+}: Props) {
   const { workspaceId, invoiceId } = await params;
+  const { fromOrder } = await searchParams;
   if (!mongoose.Types.ObjectId.isValid(invoiceId)) notFound();
 
   const { session, workspace: doc, role } = await requireWorkspaceAccess({
@@ -71,19 +77,28 @@ export default async function EditSaleInvoicePage({ params }: Props) {
           <ArrowLeft className="h-3.5 w-3.5" />
           Sale Invoices
         </Link>
-        <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/30">
-            <Pencil className="h-5 w-5" />
-          </span>
-          <div>
-            <h1 className="text-[22px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
-              {inv.number}
-            </h1>
-            <p className="mt-1 text-[12.5px] text-zinc-500 dark:text-zinc-400">
-              {inv.customer.name}
-              {inv.customer.company ? ` · ${inv.customer.company}` : ""}
-            </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/30">
+              <Pencil className="h-5 w-5" />
+            </span>
+            <div>
+              <h1 className="text-[22px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
+                {inv.number}
+              </h1>
+              <p className="mt-1 text-[12.5px] text-zinc-500 dark:text-zinc-400">
+                {inv.customer.name}
+                {inv.customer.company ? ` · ${inv.customer.company}` : ""}
+              </p>
+            </div>
           </div>
+          <Link
+            href={`/workspace/${workspace.id}/sale-invoices/${String(inv._id)}/pdf`}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 text-[13px] font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800/70"
+          >
+            <FileText className="h-4 w-4" />
+            View PDF
+          </Link>
         </div>
 
         <SalesInvoiceForm
@@ -114,6 +129,12 @@ export default async function EditSaleInvoicePage({ params }: Props) {
           }}
         />
       </div>
+      {fromOrder ? (
+        <ConversionSuccessPopup
+          sourceOrderNumber={fromOrder}
+          invoiceNumber={inv.number}
+        />
+      ) : null}
     </DashboardLayout>
   );
 }

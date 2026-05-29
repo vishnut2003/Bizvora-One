@@ -9,6 +9,7 @@ import { connectDB } from "@/config/db";
 import Workspace from "@/models/workspace";
 import Customer from "@/models/customer";
 import SalesInvoice from "@/models/sales-invoice";
+import SalesOrder from "@/models/sales-order";
 import { getActorRole } from "@/lib/workspace-access";
 import {
   SALES_INVOICE_STATUSES,
@@ -454,4 +455,160 @@ export async function recordInvoiceFollowUp(
   }
   revalidatePath(`/workspace/${workspaceId}/recovery`);
   return { ok: true };
+}
+
+// Raise a fresh sales invoice from an existing sales order. Copies customer +
+// items + discount + notes verbatim, generates a brand-new SI number, links
+// the invoice back to the source order via `salesOrder`, and flips the
+// order's status to "invoiced". Redirects to the new invoice's edit page on
+// success so the user can fill in payment-specific fields (due date, terms).
+export async function convertSalesOrderToInvoice(
+  workspaceId: string,
+  orderId: string,
+): Promise<{ ok: false; error: string } | void> {
+  const ctx = await loadContext(workspaceId);
+  if (!ctx.ok) return { ok: false, error: ctx.error };
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return { ok: false, error: "Invalid sales order id." };
+  }
+
+  const order = await SalesOrder.findOne({
+    _id: orderId,
+    workspace: workspaceId,
+  });
+  if (!order) return { ok: false, error: "Sales order not found." };
+
+  if (order.status === "invoiced" || order.status === "cancelled") {
+    return {
+      ok: false,
+      error: "This order can't be converted in its current state.",
+    };
+  }
+  if (!order.items || order.items.length === 0) {
+    return { ok: false, error: "Order has no items to invoice." };
+  }
+
+  // Caller must be able to manage the source order AND have invoice-create
+  // rights. canManageVoucher handles the sales_executive own/assigned scope.
+  const canManageOrder = canManageVoucher(ctx.role, ctx.session.user.id, {
+    createdBy: String(order.createdBy),
+    assignedTo: order.assignedTo ? String(order.assignedTo) : null,
+  });
+  if (!canManageOrder || !canManageAnyVoucher(ctx.role)) {
+    return {
+      ok: false,
+      error: "You don't have permission to convert this order.",
+    };
+  }
+
+  const invoiceItems = order.items.map((it) => ({
+    description: it.description,
+    quantity: it.quantity,
+    unitPrice: it.unitPrice,
+    taxRate: it.taxRate,
+    lineTotal: lineSubtotal({
+      quantity: it.quantity,
+      unitPrice: it.unitPrice,
+      taxRate: it.taxRate,
+    }),
+  }));
+  const totals = computeTotals(
+    order.items.map((it) => ({
+      quantity: it.quantity,
+      unitPrice: it.unitPrice,
+      taxRate: it.taxRate,
+    })),
+    order.discount ?? 0,
+  );
+  const invoiceDate = new Date();
+  const status = reconcileStatus("unpaid", totals.total, 0, null);
+
+  // Preserve the order's owner unless the caller is scoped (sales_executive),
+  // in which case the invoice should be theirs (mirrors createSalesInvoice).
+  const assignedTo = canManageAnyVoucher(ctx.role)
+    ? order.assignedTo
+      ? new mongoose.Types.ObjectId(String(order.assignedTo))
+      : null
+    : new mongoose.Types.ObjectId(ctx.session.user.id);
+
+  let createdId: string | null = null;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const number = await nextInvoiceNumber(
+      workspaceId,
+      invoiceDate.getFullYear(),
+    );
+    try {
+      const created = await SalesInvoice.create({
+        workspace: workspaceId,
+        number,
+        customer: {
+          refId: order.customer.refId ?? null,
+          name: order.customer.name,
+          company: order.customer.company ?? "",
+          email: order.customer.email ?? "",
+          gstin: order.customer.gstin ?? "",
+        },
+        salesOrder: order._id,
+        currency: order.currency,
+        invoiceDate,
+        dueDate: null,
+        items: invoiceItems,
+        subtotal: totals.subtotal,
+        taxTotal: totals.taxTotal,
+        discount: order.discount ?? 0,
+        total: totals.total,
+        amountPaid: 0,
+        status,
+        notes: order.notes ?? "",
+        terms: "",
+        createdBy: new mongoose.Types.ObjectId(ctx.session.user.id),
+        assignedTo,
+      });
+      createdId = String(created._id);
+      break;
+    } catch (err) {
+      const e = err as { code?: number; digest?: string };
+      if (e?.digest?.startsWith?.("NEXT_REDIRECT")) throw err;
+      if (e?.code === 11000) continue;
+      console.error("[convertSalesOrderToInvoice] create failed", err);
+      return {
+        ok: false,
+        error: "Couldn't create the invoice. Please try again.",
+      };
+    }
+  }
+
+  if (!createdId) {
+    return {
+      ok: false,
+      error: "Couldn't allocate an invoice number. Please try again.",
+    };
+  }
+
+  // Flip the source order to "invoiced". A failure here is non-fatal — the
+  // invoice already exists; the user can hand-edit the order status.
+  try {
+    await SalesOrder.updateOne(
+      { _id: order._id, workspace: workspaceId },
+      { $set: { status: "invoiced" } },
+    );
+  } catch (err) {
+    console.error(
+      "[convertSalesOrderToInvoice] order status update failed",
+      err,
+    );
+  }
+
+  revalidatePath(`/workspace/${workspaceId}/sales-orders`);
+  revalidatePath(`/workspace/${workspaceId}/sales-orders/${orderId}/edit`);
+  revalidatePath(`/workspace/${workspaceId}/sale-invoices`);
+  // The query param drives a one-time success popup on the destination page,
+  // which the popup itself clears via router.replace once dismissed.
+  redirect(
+    `/workspace/${workspaceId}/sale-invoices/${createdId}/edit?fromOrder=${encodeURIComponent(
+      order.number,
+    )}`,
+  );
 }
