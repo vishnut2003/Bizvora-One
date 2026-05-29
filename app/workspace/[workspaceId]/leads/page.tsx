@@ -35,7 +35,6 @@ import Lead, {
 import User from "@/models/user";
 import {
   LEAD_VIEWER_ROLES,
-  canManageAnyLead,
   canManageLead,
   canViewAllLeads,
 } from "@/lib/lead";
@@ -50,7 +49,6 @@ import HistoryButton, {
   type HistoryEntry,
 } from "./_components/history-button";
 import LeadsToolbar from "./_components/leads-toolbar";
-import RemoveLeadButton from "./_components/remove-lead-button";
 import type {
   LeadFormDefaults,
   LeadFormMember,
@@ -481,8 +479,6 @@ export default async function LeadsPage({
     color: doc.color as WorkspaceColor,
     role: myRole,
   };
-
-  const fullManager = canManageAnyLead(myRole);
 
   const stats: Array<{
     label: string;
@@ -1015,25 +1011,16 @@ export default async function LeadsPage({
                           entries={historyEntries}
                         />
                         {canEdit ? (
-                          <>
-                            <EditLeadButton
-                              workspaceId={workspace.id}
-                              leadId={leadId}
-                              leadName={lead.name}
-                              defaults={defaultsForEdit}
-                              notes={notesForEdit}
-                              members={assignableMembers}
-                              currentUserId={session.user.id}
-                              actorRole={myRole}
-                            />
-                            {fullManager ? (
-                              <RemoveLeadButton
-                                workspaceId={workspace.id}
-                                leadId={leadId}
-                                leadName={lead.name}
-                              />
-                            ) : null}
-                          </>
+                          <EditLeadButton
+                            workspaceId={workspace.id}
+                            leadId={leadId}
+                            leadName={lead.name}
+                            defaults={defaultsForEdit}
+                            notes={notesForEdit}
+                            members={assignableMembers}
+                            currentUserId={session.user.id}
+                            actorRole={myRole}
+                          />
                         ) : null}
                       </div>
                     </div>

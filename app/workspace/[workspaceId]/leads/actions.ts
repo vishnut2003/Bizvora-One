@@ -15,7 +15,6 @@ import Lead, {
 } from "@/models/lead";
 import Workspace from "@/models/workspace";
 import {
-  canManageAnyLead,
   canManageLead,
   canViewLeads,
 } from "@/lib/lead";
@@ -543,41 +542,3 @@ export async function updateLead(
   return { ok: true };
 }
 
-export type RemoveLeadState =
-  | { ok?: boolean; formError?: string }
-  | undefined;
-
-export async function removeLead(
-  workspaceId: string,
-  leadId: string,
-): Promise<RemoveLeadState> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { formError: "Your session expired. Please sign in again." };
-  }
-
-  if (
-    !mongoose.Types.ObjectId.isValid(workspaceId) ||
-    !mongoose.Types.ObjectId.isValid(leadId)
-  ) {
-    return { formError: "Invalid identifier." };
-  }
-
-  await connectDB();
-
-  const workspace = await Workspace.findById(workspaceId);
-  if (!workspace) return { formError: "Workspace not found." };
-
-  const actorRole = getActorRole(workspace, session.user.id);
-  if (!canManageAnyLead(actorRole)) {
-    return { formError: "You don't have permission to delete leads." };
-  }
-
-  const result = await Lead.deleteOne({ _id: leadId, workspace: workspaceId });
-  if (result.deletedCount === 0) {
-    return { formError: "Lead not found." };
-  }
-
-  revalidatePath(`/workspace/${workspaceId}/leads`);
-  return { ok: true };
-}

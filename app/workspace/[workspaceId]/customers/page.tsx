@@ -33,7 +33,6 @@ import {
   CUSTOMER_VIEWER_ROLES,
   canConvertLeadToCustomer,
   canCreateCustomer,
-  canManageAnyCustomer,
   canManageCustomer,
   canViewAllCustomers,
 } from "@/lib/customer";
@@ -48,7 +47,6 @@ import HistoryButton, {
   type HistoryEntry,
 } from "./_components/history-button";
 import CustomersToolbar from "./_components/customers-toolbar";
-import RemoveCustomerButton from "./_components/remove-customer-button";
 import type {
   CustomerFormDefaults,
   CustomerFormMember,
@@ -349,7 +347,6 @@ export default async function CustomersPage({
     role: myRole,
   };
 
-  const fullManager = canManageAnyCustomer(myRole);
   const canAddCustomer = canCreateCustomer(myRole);
   const canConvertFromLead = canConvertLeadToCustomer(myRole);
 
@@ -850,25 +847,16 @@ export default async function CustomersPage({
                           entries={historyEntries}
                         />
                         {canEdit ? (
-                          <>
-                            <EditCustomerButton
-                              workspaceId={workspace.id}
-                              customerId={customerId}
-                              customerName={customer.name}
-                              defaults={defaultsForEdit}
-                              notes={notesForEdit}
-                              members={assignableMembers}
-                              currentUserId={session.user.id}
-                              actorRole={myRole}
-                            />
-                            {fullManager ? (
-                              <RemoveCustomerButton
-                                workspaceId={workspace.id}
-                                customerId={customerId}
-                                customerName={customer.name}
-                              />
-                            ) : null}
-                          </>
+                          <EditCustomerButton
+                            workspaceId={workspace.id}
+                            customerId={customerId}
+                            customerName={customer.name}
+                            defaults={defaultsForEdit}
+                            notes={notesForEdit}
+                            members={assignableMembers}
+                            currentUserId={session.user.id}
+                            actorRole={myRole}
+                          />
                         ) : null}
                       </div>
                     </div>

@@ -18,7 +18,6 @@ import Workspace from "@/models/workspace";
 import {
   canConvertLeadToCustomer,
   canCreateCustomer,
-  canManageAnyCustomer,
   canManageCustomer,
   canViewCustomers,
 } from "@/lib/customer";
@@ -703,44 +702,3 @@ export async function updateCustomer(
   return { ok: true };
 }
 
-export type RemoveCustomerState =
-  | { ok?: boolean; formError?: string }
-  | undefined;
-
-export async function removeCustomer(
-  workspaceId: string,
-  customerId: string,
-): Promise<RemoveCustomerState> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { formError: "Your session expired. Please sign in again." };
-  }
-
-  if (
-    !mongoose.Types.ObjectId.isValid(workspaceId) ||
-    !mongoose.Types.ObjectId.isValid(customerId)
-  ) {
-    return { formError: "Invalid identifier." };
-  }
-
-  await connectDB();
-
-  const workspace = await Workspace.findById(workspaceId);
-  if (!workspace) return { formError: "Workspace not found." };
-
-  const actorRole = getActorRole(workspace, session.user.id);
-  if (!canManageAnyCustomer(actorRole)) {
-    return { formError: "You don't have permission to delete customers." };
-  }
-
-  const result = await Customer.deleteOne({
-    _id: customerId,
-    workspace: workspaceId,
-  });
-  if (result.deletedCount === 0) {
-    return { formError: "Customer not found." };
-  }
-
-  revalidatePath(`/workspace/${workspaceId}/customers`);
-  return { ok: true };
-}
