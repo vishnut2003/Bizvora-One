@@ -64,20 +64,22 @@ export default function DeleteVoucherButton({
         </button>
       )}
 
-      <Popup open={open} onOpenChange={setOpen} className="sm:max-w-md">
-        <div className="space-y-4 p-6">
-          <div>
-            <h3 className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">
-              {label}
-            </h3>
-            <p className="mt-1 text-[12.5px] text-zinc-500 dark:text-zinc-400">
-              Are you sure you want to remove{" "}
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                {entityName}
-              </span>
-              ? This can&apos;t be undone.
-            </p>
-          </div>
+      <Popup
+        open={open}
+        onOpenChange={setOpen}
+        className="sm:max-w-md"
+        title={label}
+        description={
+          <>
+            Are you sure you want to remove{" "}
+            <span className="font-medium text-zinc-700 dark:text-zinc-300">
+              {entityName}
+            </span>
+            ? This can&apos;t be undone.
+          </>
+        }
+      >
+        <div className="space-y-4 px-6 pb-6 pt-4">
           {error ? (
             <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
               {error}
