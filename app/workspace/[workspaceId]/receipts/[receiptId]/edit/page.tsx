@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import mongoose from "mongoose";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, FileText, Pencil } from "lucide-react";
 import Receipt, { type IReceipt } from "@/models/receipt";
 import SalesInvoice from "@/models/sales-invoice";
 import { requireWorkspaceAccess } from "@/lib/workspace-access";
@@ -97,18 +97,27 @@ export default async function EditReceiptPage({ params }: Props) {
           <ArrowLeft className="h-3.5 w-3.5" />
           Receipts
         </Link>
-        <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/30">
-            <Pencil className="h-5 w-5" />
-          </span>
-          <div>
-            <h1 className="text-[22px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
-              {r.number}
-            </h1>
-            <p className="mt-1 text-[12.5px] text-zinc-500 dark:text-zinc-400">
-              {r.customer.name}
-            </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/30">
+              <Pencil className="h-5 w-5" />
+            </span>
+            <div>
+              <h1 className="text-[22px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
+                {r.number}
+              </h1>
+              <p className="mt-1 text-[12.5px] text-zinc-500 dark:text-zinc-400">
+                {r.customer.name}
+              </p>
+            </div>
           </div>
+          <Link
+            href={`/workspace/${workspace.id}/receipts/${String(r._id)}/pdf`}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 text-[13px] font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800/70"
+          >
+            <FileText className="h-4 w-4" />
+            View PDF
+          </Link>
         </div>
 
         <ReceiptForm

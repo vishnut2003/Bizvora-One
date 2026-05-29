@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   Banknote,
   Building2,
+  FileText,
   Pencil,
   Plus,
   Receipt as ReceiptIcon,
@@ -288,6 +289,14 @@ export default async function ReceiptsPage({ params, searchParams }: Props) {
                       >
                         {RECEIPT_STATUS_LABEL[status]}
                       </span>
+                      <Link
+                        href={`/workspace/${workspace.id}/receipts/${id}/pdf`}
+                        aria-label={`View PDF for receipt ${r.number}`}
+                        className="inline-flex h-8 items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2.5 text-[12px] font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800/70"
+                      >
+                        <FileText className="h-3 w-3" />
+                        PDF
+                      </Link>
                       {canManage ? (
                         <>
                           <Link href={`/workspace/${workspace.id}/receipts/${id}/edit`}>
