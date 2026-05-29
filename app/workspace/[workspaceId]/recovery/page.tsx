@@ -25,6 +25,9 @@ import { timeAgo } from "@/lib/time";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import Button from "@/components/button";
 import FollowUpButton from "./_components/follow-up-button";
+import FollowUpHistoryPopup, {
+  type FollowUpEntry,
+} from "./_components/follow-up-history-popup";
 
 export const metadata: Metadata = { title: "Recovery — BizvoraOne" };
 
@@ -330,8 +333,18 @@ export default async function RecoveryPage({ params, searchParams }: Props) {
                     const dueDate = inv.dueDate ? new Date(inv.dueDate) : null;
                     const daysOverdue = dueDate ? daysBetween(today, dueDate) : 0;
                     const balance = Math.max(0, inv.total - (inv.amountPaid ?? 0));
-                    const latestFollow =
-                      (inv.followUps ?? [])[(inv.followUps?.length ?? 0) - 1];
+                    const allFollowUps = inv.followUps ?? [];
+                    const latestFollow = allFollowUps[allFollowUps.length - 1];
+                    // Build a newest-first list for the history popup, with
+                    // author names resolved against the bulk-fetched userMap.
+                    const historyEntries: FollowUpEntry[] = [...allFollowUps]
+                      .reverse()
+                      .map((f) => ({
+                        at: new Date(f.at).toISOString(),
+                        byName:
+                          userMap.get(String(f.by))?.name ?? "Someone",
+                        note: f.note ?? "",
+                      }));
                     return (
                       <li key={id} className="px-5 py-4">
                         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -377,11 +390,11 @@ export default async function RecoveryPage({ params, searchParams }: Props) {
                                 {latestFollow.note
                                   ? ` — ${latestFollow.note}`
                                   : ""}
-                                {(inv.followUps?.length ?? 0) > 1 ? (
-                                  <span className="ml-2 text-zinc-400">
-                                    +{(inv.followUps?.length ?? 0) - 1} earlier
-                                  </span>
-                                ) : null}
+                                <FollowUpHistoryPopup
+                                  invoiceNumber={inv.number}
+                                  entries={historyEntries}
+                                  earlierCount={allFollowUps.length - 1}
+                                />
                               </p>
                             ) : null}
                           </div>
