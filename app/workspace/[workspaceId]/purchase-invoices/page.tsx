@@ -18,8 +18,6 @@ import type { WorkspaceColor } from "@/lib/workspace";
 import { cn } from "@/lib/cn";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import Button from "@/components/button";
-import DeleteVoucherButton from "@/components/delete-voucher-button";
-import { deletePurchaseInvoice } from "./actions";
 
 export const metadata: Metadata = { title: "Purchase Invoices — BizvoraOne" };
 
@@ -307,25 +305,14 @@ export default async function PurchaseInvoicesPage({ params, searchParams }: Pro
                         PDF
                       </Link>
                       {canManage ? (
-                        <>
-                          <Link
-                            href={`/workspace/${workspace.id}/purchase-invoices/${id}/edit`}
-                          >
-                            <Button type="button" variant="secondary" size="sm">
-                              <Pencil className="h-3 w-3" />
-                              Edit
-                            </Button>
-                          </Link>
-                          <DeleteVoucherButton
-                            label="Remove purchase invoice"
-                            entityName={inv.number}
-                            onDelete={deletePurchaseInvoice.bind(
-                              null,
-                              workspace.id,
-                              id,
-                            )}
-                          />
-                        </>
+                        <Link
+                          href={`/workspace/${workspace.id}/purchase-invoices/${id}/edit`}
+                        >
+                          <Button type="button" variant="secondary" size="sm">
+                            <Pencil className="h-3 w-3" />
+                            Edit
+                          </Button>
+                        </Link>
                       ) : null}
                     </div>
                   </li>

@@ -316,38 +316,6 @@ export async function updatePurchaseInvoice(
   redirect(`/workspace/${workspaceId}/purchase-invoices`);
 }
 
-export async function deletePurchaseInvoice(
-  workspaceId: string,
-  invoiceId: string,
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  const ctx = await loadContext(workspaceId);
-  if (!ctx.ok) return { ok: false, error: ctx.error };
-  if (!canManagePurchases(ctx.role)) {
-    return { ok: false, error: "You can't delete purchase invoices." };
-  }
-  if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
-    return { ok: false, error: "Invalid invoice id." };
-  }
-  const existing = await PurchaseInvoice.findOne({
-    _id: invoiceId,
-    workspace: workspaceId,
-  })
-    .select({ amountPaid: 1 })
-    .lean();
-  if (!existing) return { ok: false, error: "Purchase invoice not found." };
-  const paid = (existing as { amountPaid?: number }).amountPaid ?? 0;
-  if (paid > 0) {
-    return {
-      ok: false,
-      error:
-        "This invoice has payments allocated to it. Cancel or reverse the payments first.",
-    };
-  }
-  await PurchaseInvoice.deleteOne({ _id: invoiceId, workspace: workspaceId });
-  revalidatePath(`/workspace/${workspaceId}/purchase-invoices`);
-  return { ok: true };
-}
-
 // Raise a fresh purchase invoice (vendor bill record) from an existing
 // purchase order. Copies vendor + items + discount + notes verbatim,
 // generates a brand-new PI number, links the invoice back to the source
