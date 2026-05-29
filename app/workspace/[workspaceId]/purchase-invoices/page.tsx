@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText, Plus } from "lucide-react";
+import { Building2, FileText, Pencil, Plus } from "lucide-react";
 import type { FilterQuery } from "mongoose";
 import { format } from "date-fns";
 import PurchaseInvoice, { type IPurchaseInvoice } from "@/models/purchase-invoice";
@@ -15,9 +15,9 @@ import {
   type PurchaseInvoiceStatus,
 } from "@/lib/voucher";
 import type { WorkspaceColor } from "@/lib/workspace";
+import { cn } from "@/lib/cn";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import Button from "@/components/button";
-import VoucherCard from "@/components/voucher-card";
 import DeleteVoucherButton from "@/components/delete-voucher-button";
 import { deletePurchaseInvoice } from "./actions";
 
@@ -203,62 +203,101 @@ export default async function PurchaseInvoicesPage({ params, searchParams }: Pro
           ) : null}
         </form>
 
-        {invs.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-zinc-200 bg-white px-6 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-primary to-secondary text-white shadow-md">
-              <FileText className="h-5 w-5" />
-            </span>
-            <h2 className="mt-4 text-[16px] font-medium text-zinc-900 dark:text-zinc-100">
-              {filtersApplied
-                ? "No purchase invoices match these filters"
-                : "No purchase invoices yet"}
+        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-3.5 dark:border-zinc-800">
+            <h2 className="text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
+              {invs.length}{" "}
+              {invs.length === 1 ? "vendor bill" : "vendor bills"}
             </h2>
-            <p className="mt-1.5 text-[12.5px] text-zinc-500 dark:text-zinc-400">
-              {filtersApplied
-                ? "Clear filters or refine your search."
-                : canManage
-                  ? "Enter your first vendor bill."
-                  : "Once bills are entered, they'll show up here."}
-            </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {invs.map((inv) => {
-              const id = inv._id.toString();
-              const status = inv.status as PurchaseInvoiceStatus;
-              const dueDate = inv.dueDate ? new Date(inv.dueDate) : null;
-              const paid = inv.amountPaid ?? 0;
-              const hint =
-                paid > 0
-                  ? `Paid ${formatCurrency(paid, inv.currency)} · Balance ${formatCurrency(inv.total - paid, inv.currency)}`
-                  : inv.vendorBillNumber
-                    ? `Vendor ref ${inv.vendorBillNumber}`
-                    : null;
-              return (
-                <VoucherCard
-                  key={id}
-                  voucher={{
-                    id,
-                    number: inv.number,
-                    partyName: inv.vendor.name,
-                    partyCompany: inv.vendor.company ?? "",
-                    primaryDate: format(new Date(inv.invoiceDate), "MMM d, yyyy"),
-                    primaryDateLabel: "Invoice date",
-                    secondaryDate: dueDate ? format(dueDate, "MMM d, yyyy") : null,
-                    secondaryDateLabel: "Due",
-                    currency: inv.currency,
-                    total: inv.total,
-                    itemCount: inv.items?.length ?? 0,
-                    status,
-                    statusLabel: PURCHASE_INVOICE_STATUS_LABEL[status],
-                    statusBadgeClass: PURCHASE_INVOICE_STATUS_BADGE_CLASS[status],
-                    amountPaid: paid,
-                  }}
-                  editHref={`/workspace/${workspace.id}/purchase-invoices/${id}/edit`}
-                  canEdit={canManage}
-                  hint={hint}
-                  extra={
-                    <>
+
+          {invs.length === 0 ? (
+            <div className="px-5 py-14 text-center">
+              <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-linear-to-br from-primary to-secondary text-white shadow-md">
+                <FileText className="h-5 w-5" />
+              </span>
+              <p className="mt-4 text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
+                {filtersApplied
+                  ? "No purchase invoices match these filters."
+                  : "No purchase invoices yet."}
+              </p>
+              <p className="mt-1.5 text-[12.5px] text-zinc-500 dark:text-zinc-400">
+                {filtersApplied
+                  ? "Clear filters or refine your search."
+                  : canManage
+                    ? "Enter your first vendor bill."
+                    : "Once bills are entered, they'll show up here."}
+              </p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              {invs.map((inv) => {
+                const id = inv._id.toString();
+                const status = inv.status as PurchaseInvoiceStatus;
+                const dueDate = inv.dueDate ? new Date(inv.dueDate) : null;
+                const paid = inv.amountPaid ?? 0;
+                const balance = Math.max(0, inv.total - paid);
+                const itemCount = inv.items?.length ?? 0;
+                return (
+                  <li
+                    key={id}
+                    className="flex flex-wrap items-start gap-3 px-5 py-4 transition-colors hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30"
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-linear-to-br from-primary to-secondary text-white shadow-sm">
+                      <FileText className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <p className="font-mono text-[12px] tracking-tight text-zinc-500 dark:text-zinc-400">
+                          {inv.number}
+                        </p>
+                        <p className="text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
+                          {inv.vendor.name}
+                        </p>
+                        {inv.vendor.company ? (
+                          <span className="inline-flex items-center gap-1 text-[11.5px] text-zinc-500 dark:text-zinc-400">
+                            <Building2 className="h-3 w-3" />
+                            {inv.vendor.company}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-1 text-[11.5px] text-zinc-500 dark:text-zinc-400">
+                        Invoiced {format(new Date(inv.invoiceDate), "MMM d, yyyy")}
+                        {dueDate ? ` · Due ${format(dueDate, "MMM d, yyyy")}` : ""}
+                        {itemCount > 0
+                          ? ` · ${itemCount} item${itemCount === 1 ? "" : "s"}`
+                          : ""}
+                        {inv.vendorBillNumber
+                          ? ` · Vendor ref ${inv.vendorBillNumber}`
+                          : ""}
+                      </p>
+                      {paid > 0 ? (
+                        <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                          Paid{" "}
+                          <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                            {formatCurrency(paid, inv.currency)}
+                          </span>{" "}
+                          · Balance{" "}
+                          <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                            {formatCurrency(balance, inv.currency)}
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <p className="text-right">
+                        <span className="text-[16px] font-semibold tabular-nums text-zinc-900 dark:text-white">
+                          {formatCurrency(inv.total, inv.currency)}
+                        </span>
+                      </p>
+                      <span
+                        className={cn(
+                          "inline-flex items-center rounded-md px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider",
+                          PURCHASE_INVOICE_STATUS_BADGE_CLASS[status],
+                        )}
+                      >
+                        {PURCHASE_INVOICE_STATUS_LABEL[status]}
+                      </span>
                       <Link
                         href={`/workspace/${workspace.id}/purchase-invoices/${id}/pdf`}
                         aria-label={`View PDF for purchase invoice ${inv.number}`}
@@ -268,19 +307,33 @@ export default async function PurchaseInvoicesPage({ params, searchParams }: Pro
                         PDF
                       </Link>
                       {canManage ? (
-                        <DeleteVoucherButton
-                          label="Remove purchase invoice"
-                          entityName={inv.number}
-                          onDelete={deletePurchaseInvoice.bind(null, workspace.id, id)}
-                        />
+                        <>
+                          <Link
+                            href={`/workspace/${workspace.id}/purchase-invoices/${id}/edit`}
+                          >
+                            <Button type="button" variant="secondary" size="sm">
+                              <Pencil className="h-3 w-3" />
+                              Edit
+                            </Button>
+                          </Link>
+                          <DeleteVoucherButton
+                            label="Remove purchase invoice"
+                            entityName={inv.number}
+                            onDelete={deletePurchaseInvoice.bind(
+                              null,
+                              workspace.id,
+                              id,
+                            )}
+                          />
+                        </>
                       ) : null}
-                    </>
-                  }
-                />
-              );
-            })}
-          </div>
-        )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );

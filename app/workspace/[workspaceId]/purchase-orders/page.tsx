@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ClipboardCheck, FileText, Plus } from "lucide-react";
+import {
+  Building2,
+  ClipboardCheck,
+  FileText,
+  Pencil,
+  Plus,
+} from "lucide-react";
 import type { FilterQuery } from "mongoose";
 import { format } from "date-fns";
 import PurchaseOrder, { type IPurchaseOrder } from "@/models/purchase-order";
@@ -11,12 +17,13 @@ import {
   PURCHASE_ORDER_STATUS_LABEL,
   PURCHASE_VIEWER_ROLES,
   canManagePurchases,
+  formatCurrency,
   type PurchaseOrderStatus,
 } from "@/lib/voucher";
 import type { WorkspaceColor } from "@/lib/workspace";
+import { cn } from "@/lib/cn";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import Button from "@/components/button";
-import VoucherCard from "@/components/voucher-card";
 import DeleteVoucherButton from "@/components/delete-voucher-button";
 import { deletePurchaseOrder } from "./actions";
 
@@ -188,54 +195,89 @@ export default async function PurchaseOrdersPage({
           ) : null}
         </form>
 
-        {ordersRaw.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-zinc-200 bg-white px-6 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-primary to-secondary text-white shadow-md">
-              <ClipboardCheck className="h-5 w-5" />
-            </span>
-            <h2 className="mt-4 text-[16px] font-medium text-zinc-900 dark:text-zinc-100">
-              {filtersApplied
-                ? "No purchase orders match these filters"
-                : "No purchase orders yet"}
+        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-3.5 dark:border-zinc-800">
+            <h2 className="text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
+              {ordersRaw.length}{" "}
+              {ordersRaw.length === 1 ? "purchase order" : "purchase orders"}
             </h2>
-            <p className="mt-1.5 text-[12.5px] text-zinc-500 dark:text-zinc-400">
-              {filtersApplied
-                ? "Clear filters or refine your search."
-                : canManage
-                  ? "Raise your first purchase order to a vendor."
-                  : "Once orders are placed, they'll show up here."}
-            </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {ordersRaw.map((o) => {
-              const id = o._id.toString();
-              const status = o.status as PurchaseOrderStatus;
-              const orderDate = new Date(o.orderDate);
-              const expectedDate = o.expectedDate ? new Date(o.expectedDate) : null;
-              return (
-                <VoucherCard
-                  key={id}
-                  voucher={{
-                    id,
-                    number: o.number,
-                    partyName: o.vendor.name,
-                    partyCompany: o.vendor.company ?? "",
-                    primaryDate: format(orderDate, "MMM d, yyyy"),
-                    primaryDateLabel: "Order date",
-                    secondaryDate: expectedDate ? format(expectedDate, "MMM d, yyyy") : null,
-                    secondaryDateLabel: "Expected",
-                    currency: o.currency,
-                    total: o.total,
-                    itemCount: o.items?.length ?? 0,
-                    status,
-                    statusLabel: PURCHASE_ORDER_STATUS_LABEL[status],
-                    statusBadgeClass: PURCHASE_ORDER_STATUS_BADGE_CLASS[status],
-                  }}
-                  editHref={`/workspace/${workspace.id}/purchase-orders/${id}/edit`}
-                  canEdit={canManage}
-                  extra={
-                    <>
+
+          {ordersRaw.length === 0 ? (
+            <div className="px-5 py-14 text-center">
+              <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-linear-to-br from-primary to-secondary text-white shadow-md">
+                <ClipboardCheck className="h-5 w-5" />
+              </span>
+              <p className="mt-4 text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
+                {filtersApplied
+                  ? "No purchase orders match these filters."
+                  : "No purchase orders yet."}
+              </p>
+              <p className="mt-1.5 text-[12.5px] text-zinc-500 dark:text-zinc-400">
+                {filtersApplied
+                  ? "Clear filters or refine your search."
+                  : canManage
+                    ? "Raise your first purchase order to a vendor."
+                    : "Once orders are placed, they'll show up here."}
+              </p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              {ordersRaw.map((o) => {
+                const id = o._id.toString();
+                const status = o.status as PurchaseOrderStatus;
+                const orderDate = new Date(o.orderDate);
+                const expectedDate = o.expectedDate
+                  ? new Date(o.expectedDate)
+                  : null;
+                const itemCount = o.items?.length ?? 0;
+                return (
+                  <li
+                    key={id}
+                    className="flex flex-wrap items-start gap-3 px-5 py-4 transition-colors hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30"
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-linear-to-br from-primary to-secondary text-white shadow-sm">
+                      <ClipboardCheck className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <p className="font-mono text-[12px] tracking-tight text-zinc-500 dark:text-zinc-400">
+                          {o.number}
+                        </p>
+                        <p className="text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
+                          {o.vendor.name}
+                        </p>
+                        {o.vendor.company ? (
+                          <span className="inline-flex items-center gap-1 text-[11.5px] text-zinc-500 dark:text-zinc-400">
+                            <Building2 className="h-3 w-3" />
+                            {o.vendor.company}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-1 text-[11.5px] text-zinc-500 dark:text-zinc-400">
+                        Ordered {format(orderDate, "MMM d, yyyy")}
+                        {expectedDate
+                          ? ` · Expected ${format(expectedDate, "MMM d, yyyy")}`
+                          : ""}
+                        {itemCount > 0
+                          ? ` · ${itemCount} item${itemCount === 1 ? "" : "s"}`
+                          : ""}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <p className="text-right">
+                        <span className="text-[16px] font-semibold tabular-nums text-zinc-900 dark:text-white">
+                          {formatCurrency(o.total, o.currency)}
+                        </span>
+                      </p>
+                      <span
+                        className={cn(
+                          "inline-flex items-center rounded-md px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider",
+                          PURCHASE_ORDER_STATUS_BADGE_CLASS[status],
+                        )}
+                      >
+                        {PURCHASE_ORDER_STATUS_LABEL[status]}
+                      </span>
                       <Link
                         href={`/workspace/${workspace.id}/purchase-orders/${id}/pdf`}
                         aria-label={`View PDF for purchase order ${o.number}`}
@@ -245,19 +287,33 @@ export default async function PurchaseOrdersPage({
                         PDF
                       </Link>
                       {canManage ? (
-                        <DeleteVoucherButton
-                          label="Remove purchase order"
-                          entityName={o.number}
-                          onDelete={deletePurchaseOrder.bind(null, workspace.id, id)}
-                        />
+                        <>
+                          <Link
+                            href={`/workspace/${workspace.id}/purchase-orders/${id}/edit`}
+                          >
+                            <Button type="button" variant="secondary" size="sm">
+                              <Pencil className="h-3 w-3" />
+                              Edit
+                            </Button>
+                          </Link>
+                          <DeleteVoucherButton
+                            label="Remove purchase order"
+                            entityName={o.number}
+                            onDelete={deletePurchaseOrder.bind(
+                              null,
+                              workspace.id,
+                              id,
+                            )}
+                          />
+                        </>
                       ) : null}
-                    </>
-                  }
-                />
-              );
-            })}
-          </div>
-        )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
