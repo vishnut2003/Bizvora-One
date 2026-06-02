@@ -38,3 +38,44 @@ export async function setWorkspaceStatus(
   revalidatePath("/admin/workspaces");
   return { ok: true };
 }
+
+export type SetWorkspaceMaxMembersResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export async function setWorkspaceMaxMembers(
+  workspaceId: string,
+  maxMembers: number | null,
+): Promise<SetWorkspaceMaxMembersResult> {
+  await requirePlatformAdmin();
+
+  if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+    return { ok: false, error: "Invalid workspace." };
+  }
+
+  if (maxMembers !== null) {
+    if (!Number.isInteger(maxMembers) || maxMembers < 1) {
+      return { ok: false, error: "Enter a whole number of 1 or more." };
+    }
+  }
+
+  await connectDB();
+  const workspace = await Workspace.findById(workspaceId);
+  if (!workspace) {
+    return { ok: false, error: "Workspace not found." };
+  }
+
+  const memberCount = workspace.members?.length ?? 0;
+  if (maxMembers !== null && maxMembers < memberCount) {
+    return {
+      ok: false,
+      error: `Limit can't be below the current ${memberCount} member${memberCount === 1 ? "" : "s"}.`,
+    };
+  }
+
+  workspace.maxMembers = maxMembers;
+  await workspace.save();
+
+  revalidatePath("/admin/workspaces");
+  return { ok: true };
+}

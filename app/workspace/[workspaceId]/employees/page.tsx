@@ -88,6 +88,11 @@ export default async function EmployeesPage({ params }: EmployeesPageProps) {
 
   const canManage = canManageEmployees(myRole);
 
+  // Member limit counts everyone with access, including the owner.
+  const maxMembers = doc.maxMembers ?? null;
+  const totalMembers = doc.members?.length ?? 0;
+  const atLimit = maxMembers != null && totalMembers >= maxMembers;
+
   const workspace = {
     id: String(doc._id),
     name: doc.name,
@@ -195,6 +200,21 @@ export default async function EmployeesPage({ params }: EmployeesPageProps) {
                 {employees.length === 1 ? "employee" : "employees"}
               </h2>
             </div>
+            <span
+              className={cn(
+                "shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium tabular-nums",
+                maxMembers == null
+                  ? "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                  : atLimit
+                    ? "bg-amber-100 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/25"
+                    : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
+              )}
+              title="Members include the workspace owner"
+            >
+              {maxMembers == null
+                ? `${totalMembers} members · no limit`
+                : `${totalMembers} / ${maxMembers} members${atLimit ? " · limit reached" : ""}`}
+            </span>
           </div>
 
           {employees.length === 0 ? (

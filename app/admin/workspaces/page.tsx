@@ -8,7 +8,10 @@ import {
   type WorkspaceColor,
   type WorkspaceStatus,
 } from "@/lib/workspace";
-import WorkspaceStatusSelect from "./_components/workspace-status-select";
+import type { UserRole } from "@/lib/user";
+import WorkspaceDetailDialog, {
+  type WorkspaceDetail,
+} from "./_components/workspace-detail-dialog";
 
 const swatch: Record<WorkspaceColor, string> = {
   violet: "bg-gradient-to-br from-violet-500 to-purple-700",
@@ -27,37 +30,43 @@ const STATUS_RANK: Record<WorkspaceStatus, number> = {
   active: 3,
 };
 
-type Row = {
-  id: string;
-  name: string;
-  color: WorkspaceColor;
-  status: WorkspaceStatus;
-  memberCount: number;
-  ownerName: string;
-  ownerEmail: string;
-  createdAt: string;
-};
-
-async function getWorkspaces(): Promise<Row[]> {
+async function getWorkspaces(): Promise<WorkspaceDetail[]> {
   await connectDB();
   const docs = await Workspace.find({})
     .populate<{ owner: { name?: string; email?: string } | null }>(
       "owner",
       "name email",
     )
+    .populate("members.user", "name email")
     .sort({ createdAt: -1 })
     .lean();
 
-  const rows: Row[] = docs.map((w) => {
+  const rows: WorkspaceDetail[] = docs.map((w) => {
+    const members = (w.members ?? []).map((m) => {
+      const user = m.user as unknown as {
+        name?: string;
+        email?: string;
+      } | null;
+      return {
+        name: user?.name ?? "Unknown",
+        email: user?.email ?? "—",
+        role: m.role as UserRole,
+      };
+    });
+
     return {
       id: String(w._id),
       name: w.name,
+      description: w.description ?? "",
       color: w.color as WorkspaceColor,
       status: (w.status as WorkspaceStatus | undefined) ?? "active",
-      memberCount: w.members?.length ?? 0,
+      memberCount: members.length,
+      maxMembers: (w.maxMembers as number | null) ?? null,
       ownerName: w.owner?.name ?? "Unknown",
       ownerEmail: w.owner?.email ?? "—",
+      members,
       createdAt: (w.createdAt as Date).toISOString(),
+      updatedAt: (w.updatedAt as Date).toISOString(),
     };
   });
 
@@ -142,7 +151,7 @@ export default async function AdminWorkspacesPage() {
                   <p className="mt-0.5">Created {timeAgo(w.createdAt)}</p>
                 </div>
 
-                <WorkspaceStatusSelect workspaceId={w.id} status={w.status} />
+                <WorkspaceDetailDialog workspace={w} />
               </div>
             ))}
           </div>

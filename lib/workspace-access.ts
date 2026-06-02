@@ -24,6 +24,7 @@ export type LeanWorkspace = {
   status?: WorkspaceStatus;
   owner: Types.ObjectId;
   members: WorkspaceMember[];
+  maxMembers?: number | null;
   createdAt: Date;
   updatedAt: Date;
 };

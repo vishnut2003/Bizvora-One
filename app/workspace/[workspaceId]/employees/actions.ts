@@ -118,6 +118,15 @@ export async function addEmployee(
     }
   }
 
+  if (
+    workspace.maxMembers != null &&
+    workspace.members.length >= workspace.maxMembers
+  ) {
+    return {
+      formError: `This workspace has reached its member limit (${workspace.maxMembers}). Ask a platform admin to raise it.`,
+    };
+  }
+
   workspace.members.push({ user: user._id, role });
   try {
     await workspace.save();

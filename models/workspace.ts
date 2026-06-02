@@ -39,6 +39,8 @@ const workspaceSchema = new Schema(
       index: true,
     },
     members: { type: [memberSchema], required: true, default: [] },
+    // Max members allowed (counts the owner). null = unlimited.
+    maxMembers: { type: Number, default: null, min: 1 },
   },
   { timestamps: true },
 );
