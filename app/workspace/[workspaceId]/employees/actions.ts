@@ -60,7 +60,6 @@ export async function addEmployee(
   const roleInput = String(formData.get("role") ?? "");
 
   const errors: NonNullable<AddEmployeeState>["errors"] = {};
-  if (name.length < 2) errors.name = "Please enter a name.";
   if (!EMAIL_RE.test(email))
     errors.email = "Please enter a valid email address.";
   if (!isUserRole(roleInput) || roleInput === "owner")
@@ -95,6 +94,9 @@ export async function addEmployee(
       return { errors: { email: "This user is already a workspace member." } };
     }
   } else {
+    if (name.length < 2) {
+      return { errors: { name: "Please enter a name." } };
+    }
     if (password.length < 8) {
       return {
         errors: { password: "Password must be at least 8 characters." },
@@ -318,4 +320,70 @@ export async function removeEmployee(
 
   revalidatePath(`/workspace/${workspaceId}/employees`);
   return { ok: true };
+}
+
+export type WorkspaceCandidate = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+export type SearchCandidatesResult =
+  | { ok: true; results: WorkspaceCandidate[] }
+  | { ok: false; error: string };
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Search the user directory by email so a manager can attach an existing
+// account to the workspace. Excludes users who are already members.
+export async function searchWorkspaceCandidates(
+  workspaceId: string,
+  query: string,
+): Promise<SearchCandidatesResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { ok: false, error: "Your session expired. Please sign in again." };
+  }
+  if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+    return { ok: false, error: "Invalid workspace." };
+  }
+
+  const q = query.trim();
+  if (q.length < 2) {
+    return { ok: true, results: [] };
+  }
+
+  await connectDB();
+
+  const workspace = await Workspace.findById(workspaceId);
+  if (!workspace) return { ok: false, error: "Workspace not found." };
+
+  const actorRole = getActorRole(workspace, session.user.id);
+  if (!canManageEmployees(actorRole)) {
+    return { ok: false, error: "You don't have permission." };
+  }
+
+  const excluded = [
+    workspace.owner,
+    ...(workspace.members ?? []).map((m) => m.user),
+  ];
+
+  const docs = await User.find({
+    _id: { $nin: excluded },
+    email: new RegExp("^" + escapeRegex(q), "i"),
+  })
+    .select("name email")
+    .limit(8)
+    .lean();
+
+  return {
+    ok: true,
+    results: docs.map((u) => ({
+      id: String(u._id),
+      name: u.name ?? "",
+      email: u.email,
+    })),
+  };
 }
