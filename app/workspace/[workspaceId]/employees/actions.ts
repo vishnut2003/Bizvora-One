@@ -326,6 +326,7 @@ export type WorkspaceCandidate = {
   id: string;
   name: string;
   email: string;
+  alreadyMember: boolean;
 };
 
 export type SearchCandidatesResult =
@@ -365,25 +366,26 @@ export async function searchWorkspaceCandidates(
     return { ok: false, error: "You don't have permission." };
   }
 
-  const excluded = [
-    workspace.owner,
-    ...(workspace.members ?? []).map((m) => m.user),
-  ];
+  const memberIds = new Set([
+    String(workspace.owner),
+    ...(workspace.members ?? []).map((m) => String(m.user)),
+  ]);
 
   const docs = await User.find({
-    _id: { $nin: excluded },
     email: new RegExp("^" + escapeRegex(q), "i"),
   })
     .select("name email")
     .limit(8)
     .lean();
 
-  return {
-    ok: true,
-    results: docs.map((u) => ({
-      id: String(u._id),
-      name: u.name ?? "",
-      email: u.email,
-    })),
-  };
+  const results = docs.map((u) => ({
+    id: String(u._id),
+    name: u.name ?? "",
+    email: u.email,
+    alreadyMember: memberIds.has(String(u._id)),
+  }));
+  // Selectable (non-member) accounts first.
+  results.sort((a, b) => Number(a.alreadyMember) - Number(b.alreadyMember));
+
+  return { ok: true, results };
 }

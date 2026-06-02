@@ -53,7 +53,15 @@ export default function AddEmployeeButton({
 
   const trimmedEmail = email.trim();
   const emailValid = EMAIL_RE.test(trimmedEmail);
-  const newMode = !selectedUser && emailValid;
+  const exactMatch = results.find(
+    (r) => r.email.toLowerCase() === trimmedEmail.toLowerCase(),
+  );
+  // The typed email belongs to an account that's already in this workspace.
+  const blockedAlreadyMember =
+    !selectedUser && Boolean(exactMatch?.alreadyMember);
+  // Only offer "create new" once a search has finished with no matches at all.
+  const newMode =
+    !selectedUser && emailValid && !loading && results.length === 0;
 
   // Debounced search of the user directory by email (skipped once a user is
   // locked in). Auto-selects when an exact email match comes back.
@@ -74,7 +82,7 @@ export default function AddEmployeeButton({
         const exact = res.results.find(
           (r) => r.email.toLowerCase() === q.toLowerCase(),
         );
-        if (exact) {
+        if (exact && !exact.alreadyMember) {
           setSelectedUser(exact);
           setShowResults(false);
         }
@@ -110,6 +118,7 @@ export default function AddEmployeeButton({
   };
 
   const selectCandidate = (c: WorkspaceCandidate) => {
+    if (c.alreadyMember) return;
     setSelectedUser(c);
     setEmail(c.email);
     setShowResults(false);
@@ -135,7 +144,8 @@ export default function AddEmployeeButton({
   };
 
   const effectiveEmail = selectedUser?.email ?? trimmedEmail;
-  const canSubmit = Boolean(selectedUser) || emailValid;
+  const canSubmit =
+    !blockedAlreadyMember && (Boolean(selectedUser) || emailValid);
 
   return (
     <>
@@ -202,28 +212,49 @@ export default function AddEmployeeButton({
               {!selectedUser && showResults && results.length > 0 ? (
                 <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
                   <ul className="max-h-56 overflow-y-auto py-1">
-                    {results.map((r) => (
-                      <li key={r.id}>
-                        <button
-                          type="button"
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => selectCandidate(r)}
-                          className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
-                        >
-                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-secondary text-[11px] font-semibold text-white">
-                            {(r.name || r.email).charAt(0).toUpperCase()}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-[13px] font-medium text-zinc-900 dark:text-zinc-100">
-                              {r.name || r.email}
+                    {results.map((r) =>
+                      r.alreadyMember ? (
+                        <li key={r.id}>
+                          <div className="flex w-full cursor-not-allowed items-center gap-2.5 px-3 py-2 text-left opacity-60">
+                            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-zinc-300 text-[11px] font-semibold text-white dark:bg-zinc-600">
+                              {(r.name || r.email).charAt(0).toUpperCase()}
                             </span>
-                            <span className="block truncate text-[11.5px] text-zinc-500 dark:text-zinc-400">
-                              {r.email}
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-[13px] font-medium text-zinc-700 dark:text-zinc-300">
+                                {r.name || r.email}
+                              </span>
+                              <span className="block truncate text-[11.5px] text-zinc-500 dark:text-zinc-400">
+                                {r.email}
+                              </span>
                             </span>
-                          </span>
-                        </button>
-                      </li>
-                    ))}
+                            <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:text-zinc-400 dark:ring-zinc-700">
+                              Already a member
+                            </span>
+                          </div>
+                        </li>
+                      ) : (
+                        <li key={r.id}>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => selectCandidate(r)}
+                            className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
+                          >
+                            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-secondary text-[11px] font-semibold text-white">
+                              {(r.name || r.email).charAt(0).toUpperCase()}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-[13px] font-medium text-zinc-900 dark:text-zinc-100">
+                                {r.name || r.email}
+                              </span>
+                              <span className="block truncate text-[11.5px] text-zinc-500 dark:text-zinc-400">
+                                {r.email}
+                              </span>
+                            </span>
+                          </button>
+                        </li>
+                      ),
+                    )}
                   </ul>
                 </div>
               ) : null}
@@ -232,9 +263,11 @@ export default function AddEmployeeButton({
                 <p className="mt-1.5 text-[11px] text-red-600 dark:text-red-400">
                   {state.errors.email}
                 </p>
-              ) : null}
-
-              {!selectedUser && !loading && newMode && results.length === 0 ? (
+              ) : blockedAlreadyMember ? (
+                <p className="mt-1.5 text-[11px] text-amber-600 dark:text-amber-400">
+                  This account is already a member of this workspace.
+                </p>
+              ) : newMode ? (
                 <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-500">
                   No existing account found — fill in the details below to create
                   one.
