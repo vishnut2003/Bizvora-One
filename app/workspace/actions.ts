@@ -48,7 +48,7 @@ export async function createWorkspace(
     const created = await Workspace.create({
       name,
       color,
-      status: "pending_payment",
+      status: "pending",
       owner: session.user.id,
       members: [{ user: session.user.id, role: "owner" }],
     });

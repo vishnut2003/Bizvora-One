@@ -128,10 +128,10 @@ export default function MobileSidebar({
               </span>
               <div>
                 <p className="text-[12px] font-semibold text-zinc-900 dark:text-zinc-100">
-                  On the beta plan
+                  All modules included
                 </p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  Free during beta. Invite teammates with no per-seat cost.
+                  Invite your whole team — every feature, every role.
                 </p>
               </div>
             </div>

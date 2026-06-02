@@ -4,10 +4,10 @@ import Eyebrow from "@/components/eyebrow";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
 
 const benefits = [
-  "Free during beta",
-  "No credit card required",
+  "All modules included",
   "Set up in under a minute",
-  "Cancel anytime",
+  "8 built-in roles",
+  "Your data stays yours",
 ];
 
 export default function Cta() {

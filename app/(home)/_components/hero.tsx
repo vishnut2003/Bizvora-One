@@ -146,7 +146,7 @@ export default function Hero() {
           </div>
 
           <p className="mt-6 text-xs text-zinc-500 dark:text-zinc-500">
-            Free during beta · No credit card required · 8 built-in roles
+            All modules included · 8 built-in roles · Set up in under a minute
           </p>
 
           <ul className="mt-8 flex flex-wrap items-center justify-center gap-2">

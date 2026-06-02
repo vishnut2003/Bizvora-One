@@ -1,5 +1,5 @@
 import Eyebrow from "@/components/eyebrow";
-import { TrendingDown, TrendingUp, Wallet, Zap } from "lucide-react";
+import { Clock, TrendingDown, TrendingUp, Zap } from "lucide-react";
 
 const stats = [
   {
@@ -24,11 +24,11 @@ const stats = [
     trend: "down" as const,
   },
   {
-    label: "Cost per seat",
-    value: "$0",
-    sub: "Free during beta — no per-seat surprises",
-    icon: <Wallet className="h-4 w-4" />,
-    trend: "down" as const,
+    label: "Time to first deal",
+    value: "<1 min",
+    sub: "Sign up and start selling right away",
+    icon: <Clock className="h-4 w-4" />,
+    trend: "up" as const,
   },
 ];
 

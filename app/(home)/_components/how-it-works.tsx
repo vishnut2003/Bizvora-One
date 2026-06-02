@@ -16,7 +16,7 @@ const steps: Step[] = [
   {
     n: "01",
     title: "Create your account",
-    body: "Sign up with email or single sign-on. No credit card, no setup call.",
+    body: "Sign up with email or single sign-on — no setup call required.",
     icon: (
       <svg className={iconClass} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <circle cx="8" cy="7" r="3" />

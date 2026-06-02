@@ -141,25 +141,23 @@ export default function WorkspaceCard({
   );
 
   if (!accessible) {
-    const isPendingPayment = workspace.status === "pending_payment";
+    const isPending = workspace.status === "pending";
     return (
       <div
         title={
-          isPendingPayment
-            ? "Complete payment to activate this workspace"
+          isPending
+            ? "Awaiting admin approval to activate this workspace"
             : `Workspace ${WORKSPACE_STATUS_LABEL[workspace.status].toLowerCase()}`
         }
         className="group relative -mx-2 cursor-default rounded-xl px-3 py-3"
       >
         <div className="flex items-center gap-3.5">{inner}</div>
-        {isPendingPayment ? (
+        {isPending ? (
           <div className="mt-2.5 pl-15">
-            <Link
-              href={`/workspace/${workspace.id}/checkout`}
-              className="inline-flex items-center justify-center rounded-md bg-linear-to-r from-primary to-secondary px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-            >
-              Complete payment
-            </Link>
+            <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
+              Awaiting admin approval. You&apos;ll get access once it&apos;s
+              activated.
+            </p>
           </div>
         ) : null}
       </div>

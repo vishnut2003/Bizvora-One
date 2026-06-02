@@ -1,8 +1,6 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import mongoose from "mongoose";
-import { cookies } from "next/headers";
 import { signIn } from "@/config/auth";
 import { connectDB } from "@/config/db";
 import User from "@/models/user";
@@ -20,8 +18,6 @@ export type SignupState =
   | undefined;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const INTENT_COOKIE = "bizvora_intended_plan";
-const INTENT_COOKIE_MAX_AGE = 60 * 60; // 1 hour
 
 function isDuplicateKeyError(err: unknown): boolean {
   return (
@@ -42,7 +38,6 @@ export async function signup(
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
   const acceptedTerms = formData.get("terms") === "on";
-  const intendedPlan = String(formData.get("plan") ?? "").trim();
 
   const errors: NonNullable<SignupState>["errors"] = {};
   if (name.length < 2) errors.name = "Please enter your full name.";
@@ -71,16 +66,6 @@ export async function signup(
       };
     }
     return { formError: "Couldn't create your account. Please try again." };
-  }
-
-  if (intendedPlan && mongoose.Types.ObjectId.isValid(intendedPlan)) {
-    const store = await cookies();
-    store.set(INTENT_COOKIE, intendedPlan, {
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: INTENT_COOKIE_MAX_AGE,
-      path: "/",
-    });
   }
 
   // signIn throws a redirect; let it propagate.

@@ -1,7 +1,6 @@
 import { Building2 } from "lucide-react";
 import { connectDB } from "@/config/db";
 import Workspace from "@/models/workspace";
-import Subscription from "@/models/subscription";
 import { requirePlatformAdmin } from "@/lib/platform-admin";
 import { timeAgo } from "@/lib/time";
 import {
@@ -9,10 +8,6 @@ import {
   type WorkspaceColor,
   type WorkspaceStatus,
 } from "@/lib/workspace";
-import {
-  SUBSCRIPTION_STATUS_LABEL,
-  type SubscriptionStatus,
-} from "@/lib/billing";
 import WorkspaceStatusSelect from "./_components/workspace-status-select";
 
 const swatch: Record<WorkspaceColor, string> = {
@@ -26,7 +21,7 @@ const swatch: Record<WorkspaceColor, string> = {
 
 // Sort order so pending approvals surface at the top of the table.
 const STATUS_RANK: Record<WorkspaceStatus, number> = {
-  pending_payment: 0,
+  pending: 0,
   suspended: 1,
   rejected: 2,
   active: 3,
@@ -41,11 +36,6 @@ type Row = {
   ownerName: string;
   ownerEmail: string;
   createdAt: string;
-  subscription: {
-    planName: string | null;
-    status: SubscriptionStatus;
-    nextChargeAt: string | null;
-  } | null;
 };
 
 async function getWorkspaces(): Promise<Row[]> {
@@ -58,18 +48,7 @@ async function getWorkspaces(): Promise<Row[]> {
     .sort({ createdAt: -1 })
     .lean();
 
-  // Join in subscription info via a single query keyed by workspace id.
-  const subs = await Subscription.find({
-    workspace: { $in: docs.map((d) => d._id) },
-  })
-    .populate<{ plan: { name?: string } | null }>("plan", "name")
-    .lean();
-  const subByWorkspace = new Map(
-    subs.map((s) => [String(s.workspace), s]),
-  );
-
   const rows: Row[] = docs.map((w) => {
-    const sub = subByWorkspace.get(String(w._id));
     return {
       id: String(w._id),
       name: w.name,
@@ -79,15 +58,6 @@ async function getWorkspaces(): Promise<Row[]> {
       ownerName: w.owner?.name ?? "Unknown",
       ownerEmail: w.owner?.email ?? "—",
       createdAt: (w.createdAt as Date).toISOString(),
-      subscription: sub
-        ? {
-            planName: sub.plan?.name ?? null,
-            status: sub.status as SubscriptionStatus,
-            nextChargeAt: sub.nextChargeAt
-              ? (sub.nextChargeAt as Date).toISOString()
-              : null,
-          }
-        : null,
     };
   });
 
@@ -101,7 +71,7 @@ async function getWorkspaces(): Promise<Row[]> {
 export default async function AdminWorkspacesPage() {
   await requirePlatformAdmin();
   const workspaces = await getWorkspaces();
-  const pending = workspaces.filter((w) => w.status === "pending_payment").length;
+  const pending = workspaces.filter((w) => w.status === "pending").length;
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
@@ -172,26 +142,6 @@ export default async function AdminWorkspacesPage() {
                   <p className="mt-0.5">Created {timeAgo(w.createdAt)}</p>
                 </div>
 
-                <div className="hidden min-w-[140px] text-right text-[12px] text-zinc-500 md:block dark:text-zinc-400">
-                  {w.subscription ? (
-                    <>
-                      <p className="truncate font-medium text-zinc-700 dark:text-zinc-300">
-                        {w.subscription.planName ?? "Plan"}
-                      </p>
-                      <p className="mt-0.5">
-                        {SUBSCRIPTION_STATUS_LABEL[w.subscription.status]}
-                        {w.subscription.nextChargeAt
-                          ? ` · ${timeAgo(w.subscription.nextChargeAt)}`
-                          : ""}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="italic text-zinc-400 dark:text-zinc-500">
-                      No subscription
-                    </p>
-                  )}
-                </div>
-
                 <WorkspaceStatusSelect workspaceId={w.id} status={w.status} />
               </div>
             ))}
@@ -202,7 +152,7 @@ export default async function AdminWorkspacesPage() {
       <p className="px-1 text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
         New workspaces start as{" "}
         <span className="font-medium">
-          {WORKSPACE_STATUS_LABEL.pending_payment}
+          {WORKSPACE_STATUS_LABEL.pending}
         </span>{" "}
         and are inaccessible to their owner until set to{" "}
         <span className="font-medium">{WORKSPACE_STATUS_LABEL.active}</span>.

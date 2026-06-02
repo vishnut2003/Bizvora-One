@@ -22,7 +22,7 @@ const faqs: Item[] = [
   },
   {
     q: "Can I sign in with Google?",
-    a: "Yes — sign up and sign in with Google or email/password. SSO/SAML is available on the Enterprise plan.",
+    a: "Yes — sign up and sign in with Google or email/password.",
   },
   {
     q: "Is my data really isolated per workspace?",

@@ -1,12 +1,11 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import Link from "next/link";
-import Button, { buttonClasses } from "@/components/button";
+import Button from "@/components/button";
 import Input from "@/components/input";
 import Popup from "@/components/popup";
 import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { ArrowRight, Check, ChevronRight, CreditCard, Plus } from "lucide-react";
+import { Check, ChevronRight, Clock, Plus } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { WORKSPACE_COLORS, type WorkspaceColor } from "@/lib/workspace";
 import {
@@ -48,18 +47,14 @@ export default function CreateWorkspaceCard() {
       setColor("violet");
       setState(undefined);
       setSubmitted(false);
-      setNewWorkspaceId(null);
     }
     setOpen(next);
   };
-
-  const [newWorkspaceId, setNewWorkspaceId] = useState<string | null>(null);
 
   const formAction = (formData: FormData) => {
     startTransition(async () => {
       const result = await createWorkspace(state, formData);
       if (result?.ok) {
-        setNewWorkspaceId(result.workspaceId ?? null);
         setSubmitted(true);
       } else {
         setState(result);
@@ -118,45 +113,24 @@ export default function CreateWorkspaceCard() {
                 aria-hidden
                 className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent"
               />
-              <CreditCard className="relative h-6 w-6" />
+              <Clock className="relative h-6 w-6" />
             </span>
             <DialogTitle className="mt-4 text-[17px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
               Workspace created
             </DialogTitle>
             <DialogDescription className="mx-auto mt-2 max-w-[34ch] text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-              Complete payment to activate it and start using the workspace.
-              You can do this now or later from the workspace list.
+              It&apos;s awaiting admin approval. You&apos;ll be able to open it
+              from the workspace list once an admin activates it.
             </DialogDescription>
             <div className="mt-6 flex items-center justify-center gap-2">
               <Button
                 type="button"
-                variant="ghost"
+                variant="primary"
                 size="sm"
                 onClick={() => handleOpenChange(false)}
               >
-                Later
+                Done
               </Button>
-              {newWorkspaceId ? (
-                <Link
-                  href={`/workspace/${newWorkspaceId}/checkout`}
-                  className={buttonClasses({
-                    variant: "primary",
-                    size: "sm",
-                  })}
-                >
-                  Complete payment
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              ) : (
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="sm"
-                  onClick={() => handleOpenChange(false)}
-                >
-                  Done
-                </Button>
-              )}
             </div>
           </div>
         ) : (

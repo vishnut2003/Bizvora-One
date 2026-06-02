@@ -45,12 +45,6 @@ const userSchema = new Schema(
       default: [],
     },
     googleId: { type: String, default: null, sparse: true, index: true },
-    razorpayCustomerId: {
-      type: String,
-      default: null,
-      sparse: true,
-      index: true,
-    },
   },
   { timestamps: true },
 );

@@ -7,7 +7,7 @@ import SignupForm from "./_components/signup-form";
 
 export const metadata: Metadata = {
   title: "Sign up — BizvoraOne",
-  description: "Create your sales workspace in seconds. Free during beta.",
+  description: "Create your sales workspace in seconds.",
 };
 
 const benefits = [
@@ -20,17 +20,12 @@ const benefits = [
     body: "Pick a starting template, invite teammates, import contacts — done.",
   },
   {
-    title: "Free during beta",
-    body: "No credit card required. Bring your data and try it end-to-end.",
+    title: "Everything in one place",
+    body: "CRM, projects, accounts, and HR — bring your data and try it end-to-end.",
   },
 ];
 
-type Props = {
-  searchParams: Promise<{ plan?: string }>;
-};
-
-export default async function SignupPage({ searchParams }: Props) {
-  const { plan } = await searchParams;
+export default function SignupPage() {
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
       <aside className="relative hidden overflow-hidden border-r border-zinc-200 bg-zinc-50/60 lg:flex lg:w-[45%] lg:flex-col lg:justify-between dark:border-zinc-800 dark:bg-zinc-950">
@@ -131,7 +126,7 @@ export default async function SignupPage({ searchParams }: Props) {
             </p>
           </div>
 
-          <SignupForm intendedPlan={plan} />
+          <SignupForm />
         </div>
       </main>
     </div>

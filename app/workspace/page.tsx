@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import mongoose from "mongoose";
 import { auth, signOut } from "@/config/auth";
 import { connectDB } from "@/config/db";
 import Workspace from "@/models/workspace";
@@ -44,28 +42,9 @@ async function getWorkspaces(userId: string): Promise<WorkspaceCardData[]> {
   });
 }
 
-type Props = {
-  searchParams: Promise<{ plan?: string }>;
-};
-
-export default async function WorkspacePage({ searchParams }: Props) {
+export default async function WorkspacePage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
-
-  // Carry the pricing-page intent through Google OAuth: /signup?plan=<id> sets
-  // it as a Google callbackUrl param, which lands us back here after auth.
-  const { plan } = await searchParams;
-  if (plan && mongoose.Types.ObjectId.isValid(plan)) {
-    const store = await cookies();
-    if (!store.get("bizvora_intended_plan")) {
-      store.set("bizvora_intended_plan", plan, {
-        httpOnly: true,
-        sameSite: "lax",
-        maxAge: 60 * 60,
-        path: "/",
-      });
-    }
-  }
 
   const workspaces = await getWorkspaces(session.user.id);
   const firstName = session.user.name?.split(" ")[0] ?? "there";
