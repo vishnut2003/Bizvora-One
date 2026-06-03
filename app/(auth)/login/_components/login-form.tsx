@@ -90,7 +90,7 @@ export default function LoginForm() {
               Remember me
             </label>
             <Link
-              href="#"
+              href="/forgot-password"
               className="font-medium text-zinc-900 underline-offset-2 hover:underline dark:text-zinc-100"
             >
               Forgot password?
