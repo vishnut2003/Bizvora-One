@@ -15,6 +15,7 @@ import Button from "@/components/button";
 import Combobox, { type ComboboxOption } from "@/components/combobox";
 import DatePicker from "@/components/date-picker";
 import Input from "@/components/input";
+import PhoneInput from "@/components/phone-input";
 import Popup from "@/components/popup";
 import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -384,15 +385,15 @@ export default function LeadFormPopup({
                 <label htmlFor="lead-phone" className={labelClass}>
                   Phone
                 </label>
-                <Input
-                  id="lead-phone"
-                  name="phone"
-                  value={values.phone}
-                  onChange={(e) => set("phone", e.target.value)}
-                  placeholder="+91 98765 43210"
-                  autoComplete="off"
-                  className="mt-2"
-                />
+                <div className="mt-2">
+                  <PhoneInput
+                    key={open ? "open" : "closed"}
+                    id="lead-phone"
+                    name="phone"
+                    defaultValue={defaults.phone}
+                    onChange={(v) => set("phone", v)}
+                  />
+                </div>
               </div>
               <div>
                 <label htmlFor="lead-company" className={labelClass}>

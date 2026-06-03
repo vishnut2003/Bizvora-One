@@ -15,6 +15,7 @@ import {
 import Button from "@/components/button";
 import Combobox, { type ComboboxOption } from "@/components/combobox";
 import Input from "@/components/input";
+import PhoneInput from "@/components/phone-input";
 import Popup from "@/components/popup";
 import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -385,15 +386,15 @@ export default function CustomerFormPopup({
                 <label htmlFor="customer-phone" className={labelClass}>
                   Phone
                 </label>
-                <Input
-                  id="customer-phone"
-                  name="phone"
-                  value={values.phone}
-                  onChange={(e) => set("phone", e.target.value)}
-                  placeholder="+91 98765 43210"
-                  autoComplete="off"
-                  className="mt-2"
-                />
+                <div className="mt-2">
+                  <PhoneInput
+                    key={open ? "open" : "closed"}
+                    id="customer-phone"
+                    name="phone"
+                    defaultValue={defaults.phone}
+                    onChange={(v) => set("phone", v)}
+                  />
+                </div>
               </div>
               <div>
                 <label htmlFor="customer-company" className={labelClass}>

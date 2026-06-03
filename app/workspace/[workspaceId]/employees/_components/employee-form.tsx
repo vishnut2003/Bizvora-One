@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Button from "@/components/button";
 import Input from "@/components/input";
+import PhoneInput from "@/components/phone-input";
 import { cn } from "@/lib/cn";
 import { VOUCHER_CURRENCIES } from "@/lib/voucher";
 import {
@@ -171,13 +172,14 @@ export default function EmployeeForm({
             <label htmlFor="phone" className={labelClass}>
               Phone
             </label>
-            <Input
-              id="phone"
-              name="phone"
-              defaultValue={defaults.phone}
-              placeholder="+91 98765 43210"
-              className="mt-2"
-            />
+            <div className="mt-2">
+              <PhoneInput
+                id="phone"
+                name="phone"
+                defaultValue={defaults.phone}
+                invalid={Boolean(errs?.phone)}
+              />
+            </div>
             {errs?.phone ? <FieldError>{errs.phone}</FieldError> : null}
           </div>
         </div>

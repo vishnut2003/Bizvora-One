@@ -12,6 +12,7 @@ import {
 import Button from "@/components/button";
 import Combobox, { type ComboboxOption } from "@/components/combobox";
 import Input from "@/components/input";
+import PhoneInput from "@/components/phone-input";
 import { cn } from "@/lib/cn";
 import { COUNTRIES } from "@/lib/countries";
 import { saveCompanyDetails, type CompanyActionState } from "../actions";
@@ -180,15 +181,14 @@ export default function CompanyDetailsForm({
             <label htmlFor="company-phone" className={labelClass}>
               Phone
             </label>
-            <Input
-              id="company-phone"
-              name="phone"
-              value={values.phone}
-              onChange={(e) => set("phone", e.target.value)}
-              placeholder="+91 98765 43210"
-              autoComplete="off"
-              className="mt-2"
-            />
+            <div className="mt-2">
+              <PhoneInput
+                id="company-phone"
+                name="phone"
+                defaultValue={values.phone}
+                onChange={(v) => set("phone", v)}
+              />
+            </div>
           </div>
           <div className="sm:col-span-2">
             <label htmlFor="company-website" className={labelClass}>

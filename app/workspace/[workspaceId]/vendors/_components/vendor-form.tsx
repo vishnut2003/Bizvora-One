@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Button from "@/components/button";
 import Input from "@/components/input";
+import PhoneInput from "@/components/phone-input";
 import { cn } from "@/lib/cn";
 import {
   VENDOR_STATUSES,
@@ -155,13 +156,14 @@ export default function VendorForm({
             <label htmlFor="phone" className={labelClass}>
               Phone
             </label>
-            <Input
-              id="phone"
-              name="phone"
-              defaultValue={defaults.phone}
-              placeholder="+91 98765 43210"
-              className="mt-2"
-            />
+            <div className="mt-2">
+              <PhoneInput
+                id="phone"
+                name="phone"
+                defaultValue={defaults.phone}
+                invalid={Boolean(errs?.phone)}
+              />
+            </div>
             {errs?.phone ? (
               <p className="mt-1.5 text-[11px] text-red-600 dark:text-red-400">
                 {errs.phone}
