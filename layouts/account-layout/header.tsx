@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { UserCircle } from "lucide-react";
-import LogoutButton from "@/layouts/dashboard-layout/logout-button";
+import { signOut } from "@/config/auth";
+import { isPlatformAdminEmail } from "@/lib/platform-admin";
+import UserMenu from "@/layouts/basic-layout/user-menu";
 
 type HeaderProps = {
   user: {
@@ -11,8 +13,6 @@ type HeaderProps = {
 };
 
 export default function Header({ user }: HeaderProps) {
-  const userInitial = (user.name ?? user.email ?? "?").charAt(0).toUpperCase();
-
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-zinc-200 bg-white/85 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/70">
       <div
@@ -48,7 +48,16 @@ export default function Header({ user }: HeaderProps) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <LogoutButton user={user} userInitial={userInitial} />
+          <UserMenu
+            name={user.name ?? null}
+            email={user.email ?? null}
+            image={user.image ?? null}
+            isAdmin={isPlatformAdminEmail(user.email)}
+            signOutAction={async () => {
+              "use server";
+              await signOut({ redirectTo: "/login" });
+            }}
+          />
         </div>
       </div>
     </header>
