@@ -24,6 +24,7 @@ import SalesOverview from "./_components/sales-overview";
 import AccountsOverview from "./_components/accounts-overview";
 import ProjectsOverview from "./_components/projects-overview";
 import HrOverview from "./_components/hr-overview";
+import PayrollOverview from "./_components/payroll-overview";
 import { QuickAction } from "./_components/overview-widgets";
 
 export const metadata: Metadata = {
@@ -182,7 +183,12 @@ async function RoleBody({
     );
   }
   if (role === "hr") {
-    return <HrOverview workspaceId={workspaceId} />;
+    return (
+      <div className="space-y-8">
+        <HrOverview workspaceId={workspaceId} />
+        <PayrollOverview workspaceId={workspaceId} />
+      </div>
+    );
   }
   // Defensive fallback — shouldn't happen because UserRole is exhaustive,
   // but typed roles can shift over time.

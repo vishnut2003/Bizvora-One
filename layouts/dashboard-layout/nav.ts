@@ -21,6 +21,8 @@ import {
   Truck,
   UserPlus,
   Users,
+  Users2,
+  Wallet,
 } from "lucide-react";
 import type { UserRole } from "@/lib/user";
 
@@ -97,7 +99,11 @@ export const navSections: NavSection[] = [
   },
   {
     heading: "HR & Payroll",
-    items: [{ href: "/users", label: "Users", icon: IdCard }],
+    items: [
+      { href: "/users", label: "Users", icon: Users2 },
+      { href: "/employees", label: "Employees", icon: IdCard },
+      { href: "/payroll", label: "Payroll", icon: Wallet },
+    ],
     restrictedTo: ["owner", "admin", "hr"],
   },
   {

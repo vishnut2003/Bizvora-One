@@ -68,13 +68,20 @@ export default function AddEmployeeButton({
   useEffect(() => {
     if (selectedUser) return;
     const q = email.trim();
+
+    // All state updates run inside the timeout (never synchronously in the
+    // effect body) to avoid cascading renders. Short queries clear results on
+    // the next tick; longer ones debounce a directory search.
     if (q.length < 2) {
-      setResults([]);
-      setLoading(false);
-      return;
+      const handle = window.setTimeout(() => {
+        setResults([]);
+        setLoading(false);
+      }, 0);
+      return () => window.clearTimeout(handle);
     }
-    setLoading(true);
+
     const handle = window.setTimeout(async () => {
+      setLoading(true);
       const res = await searchWorkspaceCandidates(workspaceId, q);
       setLoading(false);
       if (res.ok) {
