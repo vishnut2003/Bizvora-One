@@ -35,7 +35,7 @@ export default function RemoveEmployeeButton({
       if (result?.ok) {
         handleOpenChange(false);
       } else {
-        setFormError(result?.formError ?? "Couldn't remove the employee.");
+        setFormError(result?.formError ?? "Couldn't remove the user.");
       }
     });
   };
@@ -54,7 +54,7 @@ export default function RemoveEmployeeButton({
       <Popup open={open} onOpenChange={handleOpenChange}>
         <div className="px-6 pb-2 pt-6">
           <DialogTitle className="text-[17px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
-            Remove employee
+            Remove user
           </DialogTitle>
           <DialogDescription className="mt-1 text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
             Remove{" "}
@@ -95,7 +95,7 @@ export default function RemoveEmployeeButton({
               aria-busy={pending}
               className="!bg-gradient-to-r !from-red-500 !to-red-600 !shadow-red-500/25 hover:!shadow-red-500/35"
             >
-              {pending ? "Removing…" : "Remove employee"}
+              {pending ? "Removing…" : "Remove user"}
             </Button>
           </div>
         </div>

@@ -156,13 +156,13 @@ export default function AddEmployeeButton({
         onClick={() => setOpen(true)}
       >
         <UserPlus className="h-3.5 w-3.5" />
-        Add employee
+        Add user
       </Button>
 
       <Popup open={open} onOpenChange={handleOpenChange}>
         <div className="px-6 pb-2 pt-6">
           <DialogTitle className="text-[17px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
-            Add an employee
+            Add a user
           </DialogTitle>
           <DialogDescription className="mt-1 text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
             Search by email to add an existing account, or enter a new email to
@@ -372,7 +372,7 @@ export default function AddEmployeeButton({
                     )}
                   />
                   <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-500">
-                    Share it with the employee so they can sign in.
+                    Share it with the user so they can sign in.
                   </p>
                   {state?.errors?.password ? (
                     <p className="mt-1.5 text-[11px] text-red-600 dark:text-red-400">
@@ -446,7 +446,7 @@ export default function AddEmployeeButton({
               disabled={pending || !canSubmit}
               aria-busy={pending}
             >
-              {pending ? "Adding…" : "Add employee"}
+              {pending ? "Adding…" : "Add user"}
             </Button>
           </div>
         </form>

@@ -17,7 +17,7 @@ import AddEmployeeButton from "./_components/add-employee-button";
 import RemoveEmployeeButton from "./_components/remove-employee-button";
 
 export const metadata: Metadata = {
-  title: "Employees — BizvoraOne",
+  title: "Users — BizvoraOne",
 };
 
 type EmployeesPageProps = {
@@ -115,7 +115,7 @@ export default async function EmployeesPage({ params }: EmployeesPageProps) {
               For HR
             </p>
             <h1 className="mt-2 text-[26px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
-              Employees
+              Users
             </h1>
             <p className="mt-1.5 text-[13px] text-zinc-500 dark:text-zinc-400">
               People with access to{" "}
@@ -196,7 +196,7 @@ export default async function EmployeesPage({ params }: EmployeesPageProps) {
               />
               <h2 className="text-[14px] font-semibold text-zinc-900 dark:text-zinc-100">
                 {employees.length}{" "}
-                {employees.length === 1 ? "employee" : "employees"}
+                {employees.length === 1 ? "user" : "users"}
               </h2>
             </div>
             <span
@@ -219,7 +219,7 @@ export default async function EmployeesPage({ params }: EmployeesPageProps) {
           {employees.length === 0 ? (
             <div className="px-5 py-12 text-center">
               <p className="text-[13px] text-zinc-500 dark:text-zinc-400">
-                No employees yet.
+                No users yet.
               </p>
             </div>
           ) : (

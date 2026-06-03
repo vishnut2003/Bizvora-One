@@ -139,7 +139,7 @@ export async function addEmployee(
     return { formError: `${message} Please try again.` };
   }
 
-  revalidatePath(`/workspace/${workspaceId}/employees`);
+  revalidatePath(`/workspace/${workspaceId}/users`);
   return { ok: true };
 }
 
@@ -207,7 +207,7 @@ export async function removeEmployee(
     return { formError: `${message} Please try again.` };
   }
 
-  revalidatePath(`/workspace/${workspaceId}/employees`);
+  revalidatePath(`/workspace/${workspaceId}/users`);
   return { ok: true };
 }
 

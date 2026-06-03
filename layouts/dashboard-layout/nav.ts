@@ -97,7 +97,7 @@ export const navSections: NavSection[] = [
   },
   {
     heading: "HR & Payroll",
-    items: [{ href: "/employees", label: "Employees", icon: IdCard }],
+    items: [{ href: "/users", label: "Users", icon: IdCard }],
     restrictedTo: ["owner", "admin", "hr"],
   },
   {

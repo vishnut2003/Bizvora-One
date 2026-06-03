@@ -96,7 +96,7 @@ export default async function HrOverview({
       hint: `${memberRows.length} members + owner`,
       icon: Users,
       accent: "from-violet-500 to-purple-700",
-      href: `/workspace/${workspaceId}/employees`,
+      href: `/workspace/${workspaceId}/users`,
     },
     {
       label: "Roles in use",
@@ -169,8 +169,8 @@ export default async function HrOverview({
             title="Newest teammates"
             subtitle="Most recently added members"
             accent="from-emerald-500 to-teal-600"
-            actionLabel="Open employees"
-            actionHref={`/workspace/${workspaceId}/employees`}
+            actionLabel="Open users"
+            actionHref={`/workspace/${workspaceId}/users`}
           >
             {recentMembers.length === 0 ? (
               <EmptyRow>No members yet besides you.</EmptyRow>

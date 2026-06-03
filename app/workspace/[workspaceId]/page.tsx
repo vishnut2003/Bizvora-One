@@ -209,7 +209,7 @@ function QuickActions({
       { href: `${base}/quotations/new`, label: "New quotation", icon: FileSpreadsheet },
       { href: `${base}/sale-invoices/new`, label: "New invoice", icon: ReceiptIcon },
       { href: `${base}/projects`, label: "Projects", icon: FolderKanban },
-      { href: `${base}/employees`, label: "Team", icon: IdCard },
+      { href: `${base}/users`, label: "Team", icon: IdCard },
     );
   } else if (role === "sales_manager") {
     actions.push(
@@ -244,7 +244,7 @@ function QuickActions({
     );
   } else if (role === "hr") {
     actions.push(
-      { href: `${base}/employees`, label: "Manage team", icon: IdCard },
+      { href: `${base}/users`, label: "Manage team", icon: IdCard },
     );
   }
 
