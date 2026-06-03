@@ -14,7 +14,6 @@ import { requireWorkspaceAccess } from "@/lib/workspace-access";
 import { cn } from "@/lib/cn";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import AddEmployeeButton from "./_components/add-employee-button";
-import EditEmployeeButton from "./_components/edit-employee-button";
 import RemoveEmployeeButton from "./_components/remove-employee-button";
 
 export const metadata: Metadata = {
@@ -278,30 +277,16 @@ export default async function EmployeesPage({ params }: EmployeesPageProps) {
                     </span>
 
                     {canManage &&
+                    emp.id !== session.user.id &&
                     assignableRolesFor(myRole).includes(emp.role) ? (
-                      <>
-                        <EditEmployeeButton
-                          workspaceId={workspace.id}
-                          actorRole={myRole}
-                          employee={{
-                            id: emp.id,
-                            name: emp.name,
-                            email: emp.email,
-                            role: emp.role,
-                          }}
-                          isSelf={emp.id === session.user.id}
-                        />
-                        {emp.id !== session.user.id ? (
-                          <RemoveEmployeeButton
-                            workspaceId={workspace.id}
-                            employee={{
-                              id: emp.id,
-                              name: emp.name,
-                              email: emp.email,
-                            }}
-                          />
-                        ) : null}
-                      </>
+                      <RemoveEmployeeButton
+                        workspaceId={workspace.id}
+                        employee={{
+                          id: emp.id,
+                          name: emp.name,
+                          email: emp.email,
+                        }}
+                      />
                     ) : null}
                   </li>
                 );
