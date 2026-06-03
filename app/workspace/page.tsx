@@ -5,11 +5,13 @@ import { connectDB } from "@/config/db";
 import Workspace from "@/models/workspace";
 import type { WorkspaceColor, WorkspaceStatus } from "@/lib/workspace";
 import type { UserRole } from "@/models/user";
-import { LogOut } from "lucide-react";
+import { isPlatformAdminEmail } from "@/lib/platform-admin";
+import UserMenu from "@/layouts/basic-layout/user-menu";
 import WorkspaceCard, {
   type WorkspaceCardData,
 } from "./_components/workspace-card";
 import CreateWorkspaceCard from "./_components/create-workspace-card";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Choose a workspace — BizvoraOne",
@@ -47,7 +49,6 @@ export default async function WorkspacePage() {
   if (!session?.user?.id) redirect("/login");
 
   const workspaces = await getWorkspaces(session.user.id);
-  const firstName = session.user.name?.split(" ")[0] ?? "there";
 
   return (
     <div className="relative isolate flex min-h-screen flex-1 flex-col overflow-hidden bg-zinc-50 dark:bg-zinc-950">
@@ -68,7 +69,7 @@ export default async function WorkspacePage() {
       />
 
       <header className="relative flex items-center justify-between px-6 py-5 sm:px-8">
-        <div className="flex items-baseline text-[18px] font-bold tracking-tight">
+        <Link href={"/"} className="flex items-baseline text-[18px] font-bold tracking-tight">
           <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Bizvora
           </span>
@@ -77,39 +78,18 @@ export default async function WorkspacePage() {
             aria-hidden
             className="ml-1 h-1.5 w-1.5 translate-y-[-2px] rounded-full bg-gradient-to-br from-primary to-secondary"
           />
-        </div>
+        </Link>
 
-        <form
-          action={async () => {
+        <UserMenu
+          name={session.user.name ?? null}
+          email={session.user.email ?? null}
+          image={session.user.image ?? null}
+          isAdmin={isPlatformAdminEmail(session.user.email)}
+          signOutAction={async () => {
             "use server";
             await signOut({ redirectTo: "/login" });
           }}
-        >
-          <button
-            type="submit"
-            className="group inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-white/80 px-3 py-1.5 text-[12px] text-zinc-700 backdrop-blur-sm transition-all hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:bg-white/10 dark:hover:text-white"
-          >
-            {session.user.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={session.user.image}
-                alt=""
-                referrerPolicy="no-referrer"
-                className="h-5 w-5 rounded-full ring-1 ring-zinc-200 dark:ring-white/20"
-              />
-            ) : (
-              <span className="grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br from-primary to-secondary text-[10px] font-semibold text-white">
-                {firstName.charAt(0).toUpperCase()}
-              </span>
-            )}
-            <span className="hidden sm:inline">
-              {session.user.email ?? session.user.name}
-            </span>
-            <span className="mx-1 hidden h-3 w-px bg-zinc-200 dark:bg-white/15 sm:inline-block" />
-            <LogOut className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Sign out</span>
-          </button>
-        </form>
+        />
       </header>
 
       <main className="relative flex flex-1 items-center justify-center px-4 py-8">
