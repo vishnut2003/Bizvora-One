@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarClock, CheckSquare, Square, Wallet } from "lucide-react";
 import Button from "@/components/button";
@@ -84,8 +84,11 @@ export default function RunForm({
     [eligible, selected],
   );
 
-  const lopFor = (c: RunCandidate) =>
-    computeLopAmount(c.gross, workingDays, lopDaysById[c.id] ?? 0);
+  const lopFor = useCallback(
+    (c: RunCandidate) =>
+      computeLopAmount(c.gross, workingDays, lopDaysById[c.id] ?? 0),
+    [workingDays, lopDaysById],
+  );
 
   // Net preview accounts for the auto LOP deduction (floored at 0 per employee).
   const totalNet = useMemo(
@@ -94,7 +97,7 @@ export default function RunForm({
         (s, c) => s + Math.max(0, c.net - lopFor(c)),
         0,
       ),
-    [selectedEligible, workingDays, lopDaysById],
+    [selectedEligible, lopFor],
   );
 
   const allSelected =
