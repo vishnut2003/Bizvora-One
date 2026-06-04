@@ -14,6 +14,7 @@ import Lead, {
   type LeadStage,
 } from "@/models/lead";
 import Workspace from "@/models/workspace";
+import { maybeTriggerLeadCall } from "@/lib/lead-call";
 import {
   canManageLead,
   canViewLeads,
@@ -282,8 +283,9 @@ export async function createLead(
     );
   }
 
+  let lead;
   try {
-    await Lead.create({
+    lead = await Lead.create({
       workspace: workspaceId,
       name: data.name,
       email: data.email || null,
@@ -313,6 +315,9 @@ export async function createLead(
       err instanceof Error ? err.message : "Couldn't create the lead.";
     return { formError: `${message} Please try again.` };
   }
+
+  // Fire the AI voice-agent call if the workspace has it enabled (non-fatal).
+  await maybeTriggerLeadCall(lead, {});
 
   revalidatePath(`/workspace/${workspaceId}/leads`);
   return { ok: true };

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { connectDB } from "@/config/db";
 import Integration from "@/models/integration";
 import Lead from "@/models/lead";
+import { maybeTriggerLeadCall } from "@/lib/lead-call";
 import { safeEqualString } from "@/lib/integration";
 import {
   composeWebFormNote,
@@ -105,8 +106,9 @@ export async function POST(
     ? [{ body: noteBody, author: createdBy, createdAt: now }]
     : [];
 
+  let lead;
   try {
-    await Lead.create({
+    lead = await Lead.create({
       workspace: workspaceId,
       name: mapped.name,
       email: mapped.email,
@@ -184,6 +186,9 @@ export async function POST(
       $set: { lastEventAt: now },
     },
   );
+
+  // Fire the AI voice-agent call if enabled for this workspace (non-fatal).
+  await maybeTriggerLeadCall(lead, { isTest: false });
 
   revalidatePath(`/workspace/${workspaceId}/leads`);
   return ok();

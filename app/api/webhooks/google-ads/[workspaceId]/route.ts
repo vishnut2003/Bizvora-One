@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { connectDB } from "@/config/db";
 import Integration from "@/models/integration";
 import Lead from "@/models/lead";
+import { maybeTriggerLeadCall } from "@/lib/lead-call";
 import { safeEqualString } from "@/lib/integration";
 import {
   mapPayloadToLead,
@@ -68,8 +69,9 @@ export async function POST(
   const now = new Date();
   const createdBy = integration.connectedBy;
 
+  let lead;
   try {
-    await Lead.create({
+    lead = await Lead.create({
       workspace: workspaceId,
       name: mapped.name,
       email: mapped.email,
@@ -134,6 +136,9 @@ export async function POST(
       $set: { lastEventAt: now },
     },
   );
+
+  // Fire the AI voice-agent call if enabled (skips Google Ads test leads).
+  await maybeTriggerLeadCall(lead, { isTest: mapped.isTest });
 
   revalidatePath(`/workspace/${workspaceId}/leads`);
   return ok();

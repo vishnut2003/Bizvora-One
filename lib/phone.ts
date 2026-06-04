@@ -95,3 +95,23 @@ export function splitPhone(stored: string | null | undefined): {
 
   return { code: DEFAULT_PHONE_COUNTRY, national: digitsOnly(raw) };
 }
+
+// Normalize a stored/raw phone to E.164 ("+<digits>") for dialing, or null if
+// it doesn't look like a valid international number. A "+"-prefixed value keeps
+// its digits; a bare national number is prefixed with the default country's dial
+// code (pass the company's ISO when known). E.164 allows up to 15 digits; we
+// require at least 8 to reject obviously-too-short inputs.
+export function toE164(
+  stored: string | null | undefined,
+  defaultIso: string = DEFAULT_PHONE_COUNTRY,
+): string | null {
+  const raw = (stored ?? "").trim();
+  if (!raw) return null;
+
+  const digits = raw.startsWith("+")
+    ? digitsOnly(raw)
+    : `${dialForCode(defaultIso)}${digitsOnly(raw)}`;
+
+  if (digits.length < 8 || digits.length > 15) return null;
+  return `+${digits}`;
+}
