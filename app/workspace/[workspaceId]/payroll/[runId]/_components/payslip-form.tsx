@@ -83,6 +83,8 @@ export default function PayslipForm({
           currency={currency}
           earningsLabel="Extra earnings"
           deductionsLabel="Extra deductions"
+          baseGross={baseGross}
+          baseDeductions={baseDed}
         />
       </section>
 

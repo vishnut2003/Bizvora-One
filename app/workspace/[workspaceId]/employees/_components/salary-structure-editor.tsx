@@ -5,6 +5,7 @@ import { Plus, Trash2, TriangleAlert } from "lucide-react";
 import { formatCurrency } from "@/lib/voucher";
 import {
   computeTotals,
+  roundCurrency,
   type SalaryLine,
   type SalaryStructure,
 } from "@/lib/payroll";
@@ -17,6 +18,11 @@ type Props = {
   currency: string;
   earningsLabel?: string;
   deductionsLabel?: string;
+  // When this editor edits *adjustments* on top of a base salary (payslip
+  // form), pass the base totals so the summary and over-deducted warning
+  // reflect base + adjustments rather than the adjustments alone.
+  baseGross?: number;
+  baseDeductions?: number;
 };
 
 type Row = SalaryLine & { key: string };
@@ -37,6 +43,8 @@ export default function SalaryStructureEditor({
   currency,
   earningsLabel = "Earnings",
   deductionsLabel = "Deductions",
+  baseGross = 0,
+  baseDeductions = 0,
 }: Props) {
   const [earnings, setEarnings] = useState<Row[]>(() =>
     toRows(defaultValue.earnings),
@@ -45,7 +53,8 @@ export default function SalaryStructureEditor({
     toRows(defaultValue.deductions),
   );
 
-  const totals = useMemo(
+  // Totals of the lines in *this* editor (the adjustments, in the payslip case).
+  const lineTotals = useMemo(
     () =>
       computeTotals(
         earnings.map((r) => ({ label: r.label, amount: r.amount })),
@@ -53,6 +62,20 @@ export default function SalaryStructureEditor({
       ),
     [earnings, deductions],
   );
+
+  // Combined with any base passed in (base is 0 for the plain employee editor),
+  // so the summary and warning reflect the full payslip, not just adjustments.
+  const totals = useMemo(() => {
+    const gross = roundCurrency(baseGross + lineTotals.gross);
+    const totalDeductions = roundCurrency(
+      baseDeductions + lineTotals.totalDeductions,
+    );
+    return {
+      gross,
+      totalDeductions,
+      net: roundCurrency(Math.max(0, gross - totalDeductions)),
+    };
+  }, [baseGross, baseDeductions, lineTotals]);
 
   const serialized = useMemo(
     () =>
