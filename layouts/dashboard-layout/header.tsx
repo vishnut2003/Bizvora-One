@@ -7,6 +7,7 @@ import { signOut } from "@/config/auth";
 import { isPlatformAdminEmail } from "@/lib/platform-admin";
 import UserMenu from "@/layouts/basic-layout/user-menu";
 import MobileSidebar from "./mobile-sidebar";
+import NotificationBell from "./notification-bell";
 import type { NavConfig } from "./nav";
 
 const swatch: Record<WorkspaceColor, string> = {
@@ -101,6 +102,7 @@ export default function Header({ user, workspace, nav }: HeaderProps) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <NotificationBell workspaceId={workspace.id} />
           <UserMenu
             name={user.name ?? null}
             email={user.email ?? null}

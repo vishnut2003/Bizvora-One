@@ -21,6 +21,7 @@ import {
   canManageCustomer,
   canViewCustomers,
 } from "@/lib/customer";
+import { notifyAssignment } from "@/lib/notify-assignment";
 import { getActorRole } from "@/lib/workspace-access";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -303,8 +304,9 @@ export async function createCustomer(
     );
   }
 
+  let customer;
   try {
-    await Customer.create({
+    customer = await Customer.create({
       workspace: workspaceId,
       name: data.name,
       email: data.email || null,
@@ -336,6 +338,21 @@ export async function createCustomer(
     const message =
       err instanceof Error ? err.message : "Couldn't create the customer.";
     return { formError: `${message} Please try again.` };
+  }
+
+  // Notify the assignee (in-app + email). Best-effort — never throws.
+  if (data.assignedTo) {
+    await notifyAssignment({
+      workspaceId,
+      workspaceName: workspace.name,
+      recipientId: data.assignedTo,
+      actorId: session.user.id,
+      type: "customer_assigned",
+      entityType: "customer",
+      entityId: String(customer._id),
+      entityName: data.name,
+      link: `/workspace/${workspaceId}/customers`,
+    });
   }
 
   revalidatePath(`/workspace/${workspaceId}/customers`);
@@ -456,6 +473,24 @@ export async function createCustomerFromLead(
     const message =
       err instanceof Error ? err.message : "Couldn't create the customer.";
     return { formError: `${message} Please try again.` };
+  }
+
+  // Notify the assignee of the freshly converted customer. Fired here — before
+  // the lead-stamping step that can early-return — so a stamping failure never
+  // suppresses the notification for a customer that was actually created and
+  // assigned. Best-effort; never throws.
+  if (data.assignedTo) {
+    await notifyAssignment({
+      workspaceId,
+      workspaceName: workspace.name,
+      recipientId: data.assignedTo,
+      actorId: session.user.id,
+      type: "customer_assigned",
+      entityType: "customer",
+      entityId: String(customerId),
+      entityName: data.name,
+      link: `/workspace/${workspaceId}/customers`,
+    });
   }
 
   try {
@@ -696,6 +731,21 @@ export async function updateCustomer(
     const message =
       err instanceof Error ? err.message : "Couldn't update the customer.";
     return { formError: `${message} Please try again.` };
+  }
+
+  // Notify the new assignee when the customer was (re)assigned to someone.
+  if (before.assignedTo !== data.assignedTo && data.assignedTo) {
+    await notifyAssignment({
+      workspaceId,
+      workspaceName: workspace.name,
+      recipientId: data.assignedTo,
+      actorId: session.user.id,
+      type: "customer_assigned",
+      entityType: "customer",
+      entityId: String(customer._id),
+      entityName: data.name,
+      link: `/workspace/${workspaceId}/customers`,
+    });
   }
 
   revalidatePath(`/workspace/${workspaceId}/customers`);

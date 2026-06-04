@@ -19,6 +19,7 @@ import {
   canManageLead,
   canViewLeads,
 } from "@/lib/lead";
+import { notifyAssignment } from "@/lib/notify-assignment";
 import { getActorRole } from "@/lib/workspace-access";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -319,6 +320,21 @@ export async function createLead(
   // Fire the AI voice-agent call if the workspace has it enabled (non-fatal).
   await maybeTriggerLeadCall(lead, {});
 
+  // Notify the assignee (in-app + email). Best-effort — self-guards & never throws.
+  if (data.assignedTo) {
+    await notifyAssignment({
+      workspaceId,
+      workspaceName: workspace.name,
+      recipientId: data.assignedTo,
+      actorId: session.user.id,
+      type: "lead_assigned",
+      entityType: "lead",
+      entityId: String(lead._id),
+      entityName: data.name,
+      link: `/workspace/${workspaceId}/leads`,
+    });
+  }
+
   revalidatePath(`/workspace/${workspaceId}/leads`);
   return { ok: true };
 }
@@ -541,6 +557,21 @@ export async function updateLead(
     const message =
       err instanceof Error ? err.message : "Couldn't update the lead.";
     return { formError: `${message} Please try again.` };
+  }
+
+  // Notify the new assignee when the lead was (re)assigned to someone.
+  if (before.assignedTo !== data.assignedTo && data.assignedTo) {
+    await notifyAssignment({
+      workspaceId,
+      workspaceName: workspace.name,
+      recipientId: data.assignedTo,
+      actorId: session.user.id,
+      type: "lead_assigned",
+      entityType: "lead",
+      entityId: String(lead._id),
+      entityName: data.name,
+      link: `/workspace/${workspaceId}/leads`,
+    });
   }
 
   revalidatePath(`/workspace/${workspaceId}/leads`);

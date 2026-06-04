@@ -8,6 +8,7 @@ import Workspace from "@/models/workspace";
 import Project from "@/models/project";
 import Customer from "@/models/customer";
 import { getActorRole } from "@/lib/workspace-access";
+import { notifyAssignments } from "@/lib/notify-assignment";
 import { canManageProjects } from "@/lib/project";
 import { PROJECT_STATUSES, type ProjectStatus } from "@/lib/project";
 
@@ -168,6 +169,24 @@ export async function createProject(
     } catch (err) {
       console.error("[createProject] failed to log customer activity", err);
     }
+  }
+
+  // Notify each initial team member (all are "new" on create). Best-effort.
+  if (createdProjectId && uniqueTeam.length > 0) {
+    const projectId = String(createdProjectId);
+    await notifyAssignments(
+      uniqueTeam.map((memberId) => ({
+        workspaceId,
+        workspaceName: workspace.name,
+        recipientId: memberId,
+        actorId: session.user.id,
+        type: "project_assigned" as const,
+        entityType: "project" as const,
+        entityId: projectId,
+        entityName: name,
+        link: `/workspace/${workspaceId}/projects/${projectId}`,
+      })),
+    );
   }
 
   revalidatePath(`/workspace/${workspaceId}/projects`);
@@ -356,6 +375,9 @@ export async function updateProjectTeam(
     }
   }
 
+  // Snapshot the prior roster before reassigning so we only notify additions.
+  const prevTeam = new Set((project.team ?? []).map((id) => String(id)));
+
   project.team = uniqueTeam as unknown as typeof project.team;
 
   try {
@@ -365,6 +387,24 @@ export async function updateProjectTeam(
     const message =
       err instanceof Error ? err.message : "Couldn't update the team.";
     return { formError: `${message} Please try again.` };
+  }
+
+  // Notify only members who were just added to the team. Best-effort.
+  const addedMembers = uniqueTeam.filter((id) => !prevTeam.has(id));
+  if (addedMembers.length > 0) {
+    await notifyAssignments(
+      addedMembers.map((memberId) => ({
+        workspaceId,
+        workspaceName: workspace.name,
+        recipientId: memberId,
+        actorId: session.user.id,
+        type: "project_assigned" as const,
+        entityType: "project" as const,
+        entityId: projectId,
+        entityName: project.name,
+        link: `/workspace/${workspaceId}/projects/${projectId}`,
+      })),
+    );
   }
 
   revalidatePath(`/workspace/${workspaceId}/projects`);
