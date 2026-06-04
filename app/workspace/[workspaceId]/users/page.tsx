@@ -14,6 +14,7 @@ import { requireWorkspaceAccess } from "@/lib/workspace-access";
 import { cn } from "@/lib/cn";
 import DashboardLayout from "@/layouts/dashboard-layout";
 import AddEmployeeButton from "./_components/add-employee-button";
+import ChangeRoleButton from "./_components/change-role-button";
 import RemoveEmployeeButton from "./_components/remove-employee-button";
 
 export const metadata: Metadata = {
@@ -279,14 +280,26 @@ export default async function EmployeesPage({ params }: EmployeesPageProps) {
                     {canManage &&
                     emp.id !== session.user.id &&
                     assignableRolesFor(myRole).includes(emp.role) ? (
-                      <RemoveEmployeeButton
-                        workspaceId={workspace.id}
-                        employee={{
-                          id: emp.id,
-                          name: emp.name,
-                          email: emp.email,
-                        }}
-                      />
+                      <div className="flex shrink-0 items-center gap-2">
+                        <ChangeRoleButton
+                          workspaceId={workspace.id}
+                          actorRole={myRole}
+                          employee={{
+                            id: emp.id,
+                            name: emp.name,
+                            email: emp.email,
+                            role: emp.role,
+                          }}
+                        />
+                        <RemoveEmployeeButton
+                          workspaceId={workspace.id}
+                          employee={{
+                            id: emp.id,
+                            name: emp.name,
+                            email: emp.email,
+                          }}
+                        />
+                      </div>
                     ) : null}
                   </li>
                 );

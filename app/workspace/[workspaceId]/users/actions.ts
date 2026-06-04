@@ -224,6 +224,87 @@ export async function removeEmployee(
   return { ok: true };
 }
 
+export type UpdateEmployeeRoleState =
+  | { ok?: boolean; formError?: string }
+  | undefined;
+
+// Change an existing member's per-workspace role. Only mutates the membership
+// entry — never the user's global `User.role`.
+export async function updateEmployeeRole(
+  workspaceId: string,
+  employeeId: string,
+  roleInput: string,
+): Promise<UpdateEmployeeRoleState> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { formError: "Your session expired. Please sign in again." };
+  }
+
+  if (
+    !mongoose.Types.ObjectId.isValid(workspaceId) ||
+    !mongoose.Types.ObjectId.isValid(employeeId)
+  ) {
+    return { formError: "Invalid identifier." };
+  }
+
+  if (!isUserRole(roleInput) || roleInput === "owner") {
+    return { formError: "Please choose a valid role." };
+  }
+  const role = roleInput as UserRole;
+
+  await connectDB();
+
+  const workspace = await Workspace.findById(workspaceId);
+  if (!workspace) return { formError: "Workspace not found." };
+
+  const actorRole = getActorRole(workspace, session.user.id);
+  if (!canManageEmployees(actorRole)) {
+    return { formError: "You don't have permission to change roles." };
+  }
+
+  if (String(workspace.owner) === employeeId) {
+    return { formError: "The workspace owner's role can't be changed." };
+  }
+  if (session.user.id === employeeId) {
+    return { formError: "You can't change your own role." };
+  }
+
+  const membership = workspace.members?.find(
+    (m) => String(m.user) === employeeId,
+  );
+  if (!membership) {
+    return { formError: "This employee isn't part of the workspace." };
+  }
+
+  const allowedRoles = assignableRolesFor(actorRole);
+  // The actor must be allowed to manage the target's current role AND to assign
+  // the new one — so e.g. an admin can't touch another admin or elevate beyond
+  // what they can assign themselves.
+  if (!allowedRoles.includes(membership.role as UserRole)) {
+    return { formError: "You're not allowed to manage a user with this role." };
+  }
+  if (!allowedRoles.includes(role)) {
+    return { formError: "You're not allowed to assign this role." };
+  }
+
+  if (membership.role === role) {
+    return { ok: true };
+  }
+
+  membership.role = role;
+  try {
+    await workspace.save();
+  } catch (err) {
+    console.error("[updateEmployeeRole] workspace.save failed", err);
+    const message =
+      err instanceof Error ? err.message : "Couldn't update the role.";
+    return { formError: `${message} Please try again.` };
+  }
+
+  revalidatePath(`/workspace/${workspaceId}/users`);
+  return { ok: true };
+}
+
 export type WorkspaceCandidate = {
   id: string;
   name: string;
