@@ -8,6 +8,7 @@ import { connectDB } from "@/config/db";
 import User, { USER_ROLES, type UserRole } from "@/models/user";
 import Workspace from "@/models/workspace";
 import { assignableRolesFor, canManageEmployees } from "@/lib/user";
+import { notifyWorkspaceAdded } from "@/lib/notify-membership";
 import { getActorRole } from "@/lib/workspace-access";
 
 export type AddEmployeeState =
@@ -138,6 +139,18 @@ export async function addEmployee(
       err instanceof Error ? err.message : "Couldn't add the employee.";
     return { formError: `${message} Please try again.` };
   }
+
+  // Email the new member (existing and freshly-created accounts alike).
+  // Best-effort — self-guards & never throws, so it can't fail the add.
+  await notifyWorkspaceAdded({
+    workspaceId,
+    workspaceName: workspace.name,
+    recipientId: String(user._id),
+    recipientEmail: user.email,
+    recipientName: user.name,
+    actorId: session.user.id,
+    role,
+  });
 
   revalidatePath(`/workspace/${workspaceId}/users`);
   return { ok: true };
