@@ -15,9 +15,12 @@ import { VOUCHER_CURRENCIES } from "@/lib/voucher";
 import {
   canManagePayroll,
   canViewPayroll,
+  computeLopAmount,
   computeTotals,
+  daysInMonth,
   formatPeriod,
   formatRunNumber,
+  lopLineLabel,
   parseSalaryStructure,
   type SalaryLine,
 } from "@/lib/payroll";
@@ -146,6 +149,31 @@ export async function createRun(
     return { errors: { employees: "Select at least one employee." } };
   }
 
+  // Working-day base for loss-of-pay (run-level). Fall back to calendar days in
+  // the period if it's missing or invalid.
+  const workingDaysRaw = Number(formData.get("workingDays"));
+  const workingDays =
+    Number.isFinite(workingDaysRaw) && workingDaysRaw >= 1
+      ? Math.floor(workingDaysRaw)
+      : daysInMonth(periodMonth, periodYear);
+
+  // Map of employee id → LOP days. Unknown ids are ignored at use; values are
+  // coerced to finite >= 0.
+  const lopDaysById: Record<string, number> = {};
+  try {
+    const parsed = JSON.parse(
+      (formData.get("lopDaysById") as string | null) ?? "{}",
+    ) as unknown;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      for (const [id, v] of Object.entries(parsed as Record<string, unknown>)) {
+        const days = Number(v);
+        if (Number.isFinite(days) && days > 0) lopDaysById[id] = days;
+      }
+    }
+  } catch {
+    // Ignore malformed map — treat as no LOP.
+  }
+
   // One run per workspace per month (also enforced by a unique index).
   const existingRun = await PayrollRun.findOne({
     workspace: workspaceId,
@@ -217,7 +245,17 @@ export async function createRun(
   const payslipDocs = employees.map((e) => {
     const earnings = toPlainLines(e.salaryStructure?.earnings ?? []);
     const deductions = toPlainLines(e.salaryStructure?.deductions ?? []);
-    const totals = computeTotals(earnings, deductions);
+    const base = computeTotals(earnings, deductions);
+
+    // Seed an auto loss-of-pay deduction line from the entered days. It lives in
+    // adjustments.deductions so it flows through computeTotals and stays
+    // editable/removable on the payslip later (auto, but overridable).
+    const lopDays = lopDaysById[String(e._id)] ?? 0;
+    const lopAmount = computeLopAmount(base.gross, workingDays, lopDays);
+    const lopLines: SalaryLine[] =
+      lopAmount > 0 ? [{ label: lopLineLabel(lopDays), amount: lopAmount }] : [];
+
+    const totals = computeTotals(earnings, [...deductions, ...lopLines]);
     return {
       workspace: workspaceId,
       run: runId,
@@ -231,9 +269,11 @@ export async function createRun(
       periodMonth,
       periodYear,
       currency,
+      workingDays,
+      lopDays,
       earnings,
       deductions,
-      adjustments: { earnings: [], deductions: [] },
+      adjustments: { earnings: [], deductions: lopLines },
       gross: totals.gross,
       totalDeductions: totals.totalDeductions,
       net: totals.net,
@@ -309,6 +349,8 @@ export async function addEmployeeToRun(
     };
   }
 
+  // Adding to an existing draft run intentionally seeds no auto loss-of-pay
+  // (LOP days are only collected at run creation). Add it on the payslip editor.
   const earnings = toPlainLines(employee.salaryStructure?.earnings ?? []);
   const deductions = toPlainLines(employee.salaryStructure?.deductions ?? []);
   const totals = computeTotals(earnings, deductions);

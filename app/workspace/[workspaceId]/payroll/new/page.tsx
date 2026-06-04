@@ -61,6 +61,7 @@ export default async function NewPayrollRunPage({ params }: Props) {
       empId: e.empId,
       designation: e.designation ?? "",
       currency: e.currency ?? "INR",
+      gross: totals.gross,
       net: totals.net,
     };
   });

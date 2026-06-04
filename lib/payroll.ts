@@ -165,6 +165,36 @@ export function computeTotals(
   return { gross, totalDeductions, net };
 }
 
+// ── Attendance / Loss-of-Pay ─────────────────────────────────────────────────
+
+// Gross-based per-day LOP: perDay = gross / workingDays, LOP = perDay × lopDays.
+// Returns 0 when there's nothing to deduct (no pay, no working-day base, or no
+// LOP days). lopDays is clamped to [0, workingDays] so a payslip can never be
+// docked more than the full period.
+export function computeLopAmount(
+  gross: number,
+  workingDays: number,
+  lopDays: number,
+): number {
+  if (!Number.isFinite(gross) || gross <= 0) return 0;
+  if (!Number.isFinite(workingDays) || workingDays <= 0) return 0;
+  const days = Math.min(Math.max(Number.isFinite(lopDays) ? lopDays : 0, 0), workingDays);
+  if (days <= 0) return 0;
+  return roundCurrency((gross / workingDays) * days);
+}
+
+// Label for the auto-seeded LOP deduction line, e.g. "Loss of Pay (3 days)".
+export function lopLineLabel(lopDays: number): string {
+  const n = Math.max(0, Math.round(lopDays));
+  return `Loss of Pay (${n} ${n === 1 ? "day" : "days"})`;
+}
+
+// Calendar days in a month (1-indexed month). Used as the run-form default for
+// the working-day base. Day 0 of the next month is the last day of this one.
+export function daysInMonth(month: number, year: number): number {
+  return new Date(year, month, 0).getDate();
+}
+
 const MAX_LABEL = 80;
 
 // Fault-tolerant parse of a salary structure posted as JSON from the form.

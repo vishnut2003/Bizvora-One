@@ -7,7 +7,7 @@ import Button from "@/components/button";
 import Input from "@/components/input";
 import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/voucher";
-import { PERIOD_MONTHS } from "@/lib/payroll";
+import { PERIOD_MONTHS, computeLopAmount, daysInMonth } from "@/lib/payroll";
 import { createRun, type CreateRunState } from "../actions";
 
 export type RunCandidate = {
@@ -16,6 +16,7 @@ export type RunCandidate = {
   empId: string;
   designation: string;
   currency: string;
+  gross: number;
   net: number;
 };
 
@@ -46,6 +47,26 @@ export default function RunForm({
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(candidates.filter((c) => c.currency === defaultCurrency).map((c) => c.id)),
   );
+  // Working-day base for LOP (run-level). Defaults to the calendar days in the
+  // chosen month; tracks whether the user has overridden it so we don't stomp
+  // their value when they change month/year.
+  const [workingDays, setWorkingDays] = useState(() =>
+    daysInMonth(defaultMonth, defaultYear),
+  );
+  const [workingDaysTouched, setWorkingDaysTouched] = useState(false);
+  // Per-employee Loss-of-Pay days. Absent ids count as 0.
+  const [lopDaysById, setLopDaysById] = useState<Record<string, number>>({});
+
+  const setMonthAndDefault = (m: number) => {
+    setMonth(m);
+    if (!workingDaysTouched) setWorkingDays(daysInMonth(m, year));
+  };
+  const setYearAndDefault = (y: number) => {
+    setYear(y);
+    if (!workingDaysTouched) setWorkingDays(daysInMonth(month, y));
+  };
+  const setLopDays = (id: string, days: number) =>
+    setLopDaysById((prev) => ({ ...prev, [id]: days }));
 
   const [state, formAction, pending] = useActionState(
     (prev: CreateRunState, formData: FormData) =>
@@ -63,9 +84,17 @@ export default function RunForm({
     [eligible, selected],
   );
 
+  const lopFor = (c: RunCandidate) =>
+    computeLopAmount(c.gross, workingDays, lopDaysById[c.id] ?? 0);
+
+  // Net preview accounts for the auto LOP deduction (floored at 0 per employee).
   const totalNet = useMemo(
-    () => selectedEligible.reduce((s, c) => s + c.net, 0),
-    [selectedEligible],
+    () =>
+      selectedEligible.reduce(
+        (s, c) => s + Math.max(0, c.net - lopFor(c)),
+        0,
+      ),
+    [selectedEligible, workingDays, lopDaysById],
   );
 
   const allSelected =
@@ -100,12 +129,23 @@ export default function RunForm({
     selectedEligible.map((c) => c.id),
   );
 
+  // Map of selected employee id → LOP days (only those with > 0).
+  const lopDaysJson = JSON.stringify(
+    Object.fromEntries(
+      selectedEligible
+        .map((c) => [c.id, lopDaysById[c.id] ?? 0] as const)
+        .filter(([, d]) => d > 0),
+    ),
+  );
+
   return (
     <form action={formAction} className="space-y-5">
       <input type="hidden" name="periodMonth" value={month} readOnly />
       <input type="hidden" name="periodYear" value={year} readOnly />
       <input type="hidden" name="currency" value={currency} readOnly />
       <input type="hidden" name="employeeIds" value={selectedIdsJson} readOnly />
+      <input type="hidden" name="workingDays" value={workingDays} readOnly />
+      <input type="hidden" name="lopDaysById" value={lopDaysJson} readOnly />
 
       <section className="space-y-4 rounded-xl border border-zinc-100 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
         <div className="flex items-center gap-2.5">
@@ -116,12 +156,12 @@ export default function RunForm({
             Period
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label className={labelClass}>Month</label>
             <select
               value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
+              onChange={(e) => setMonthAndDefault(Number(e.target.value))}
               className={selectClass}
             >
               {PERIOD_MONTHS.map((m) => (
@@ -141,7 +181,26 @@ export default function RunForm({
               min={2000}
               max={2100}
               value={year}
-              onChange={(e) => setYear(Number(e.target.value) || defaultYear)}
+              onChange={(e) =>
+                setYearAndDefault(Number(e.target.value) || defaultYear)
+              }
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <label htmlFor="workingDays" className={labelClass}>
+              Working days
+            </label>
+            <Input
+              id="workingDays"
+              type="number"
+              min={1}
+              max={31}
+              value={workingDays}
+              onChange={(e) => {
+                setWorkingDaysTouched(true);
+                setWorkingDays(Math.max(1, Number(e.target.value) || 1));
+              }}
               className="mt-2"
             />
           </div>
@@ -160,6 +219,10 @@ export default function RunForm({
             </select>
           </div>
         </div>
+        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+          Working days is the base for loss-of-pay: per-day pay = gross ÷ working
+          days. Set each employee&apos;s LOP days below.
+        </p>
         {state.errors?.period ? (
           <p className="text-[11px] text-red-600 dark:text-red-400">
             {state.errors.period}
@@ -204,17 +267,22 @@ export default function RunForm({
           <ul className="divide-y divide-zinc-100 overflow-hidden rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
             {eligible.map((c) => {
               const checked = selected.has(c.id);
+              const lop = checked ? lopFor(c) : 0;
+              const netAfter = Math.max(0, c.net - lop);
               return (
-                <li key={c.id}>
+                <li
+                  key={c.id}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2.5 transition-colors",
+                    checked
+                      ? "bg-primary/[0.04] dark:bg-primary/10"
+                      : "hover:bg-zinc-50 dark:hover:bg-zinc-800/40",
+                  )}
+                >
                   <button
                     type="button"
                     onClick={() => toggle(c.id)}
-                    className={cn(
-                      "flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors",
-                      checked
-                        ? "bg-primary/[0.04] dark:bg-primary/10"
-                        : "hover:bg-zinc-50 dark:hover:bg-zinc-800/40",
-                    )}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
                   >
                     {checked ? (
                       <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
@@ -234,10 +302,35 @@ export default function RunForm({
                         </span>
                       ) : null}
                     </span>
-                    <span className="shrink-0 text-[12.5px] font-semibold tabular-nums text-zinc-700 dark:text-zinc-300">
-                      {formatCurrency(c.net, c.currency)}
-                    </span>
                   </button>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <input
+                      type="number"
+                      min={0}
+                      max={workingDays}
+                      step={0.5}
+                      value={lopDaysById[c.id] ? lopDaysById[c.id] : ""}
+                      onChange={(e) =>
+                        setLopDays(c.id, Math.max(0, Number(e.target.value) || 0))
+                      }
+                      disabled={!checked}
+                      placeholder="0"
+                      aria-label={`Loss-of-pay days for ${c.name}`}
+                      title="Loss-of-pay (absent) days"
+                      className="h-8 w-14 rounded-md border border-zinc-200 bg-white px-2 text-right text-[12.5px] tabular-nums text-zinc-900 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                    />
+                    <span className="w-3 text-[10px] text-zinc-400 dark:text-zinc-500">
+                      d
+                    </span>
+                  </div>
+                  <span className="w-24 shrink-0 text-right text-[12.5px] font-semibold tabular-nums text-zinc-700 dark:text-zinc-300">
+                    {formatCurrency(netAfter, c.currency)}
+                    {lop > 0 ? (
+                      <span className="block text-[10px] font-normal text-amber-600 dark:text-amber-400">
+                        −{formatCurrency(lop, c.currency)} LOP
+                      </span>
+                    ) : null}
+                  </span>
                 </li>
               );
             })}

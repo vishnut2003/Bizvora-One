@@ -64,6 +64,11 @@ const payslipSchema = new Schema(
     periodMonth: { type: Number, required: true, min: 1, max: 12 },
     periodYear: { type: Number, required: true, min: 2000, max: 2100 },
     currency: { type: String, required: true, trim: true, default: "INR" },
+    // Attendance snapshot for the period. Informational — the LOP money itself
+    // lives as a seeded line in adjustments.deductions so it flows through
+    // computeTotals and stays editable. Used for display ("Paid X of Y days").
+    workingDays: { type: Number, min: 1 },
+    lopDays: { type: Number, min: 0, default: 0 },
     // Snapshot of the employee's base salary structure at generation time.
     earnings: { type: [payslipLineSchema], default: [] },
     deductions: { type: [payslipLineSchema], default: [] },
