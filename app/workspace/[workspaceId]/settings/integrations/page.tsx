@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 type IntegrationsPageProps = {
   params: Promise<{ workspaceId: string }>;
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ "google-ad"?: string }>;
 };
 
 export default async function IntegrationsPage({
@@ -27,7 +27,7 @@ export default async function IntegrationsPage({
   searchParams,
 }: IntegrationsPageProps) {
   const { workspaceId } = await params;
-  const { status } = await searchParams;
+  const googleAdResult = (await searchParams)["google-ad"];
 
   const {
     session,
@@ -139,19 +139,23 @@ export default async function IntegrationsPage({
           </div>
         </div>
 
-        {status === "connected" ? (
+        {googleAdResult === "connected" ? (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[13px] text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
             Google Ads account connected. Paste the webhook URL and key below
             into your Google Ads Lead Form to start receiving leads.
           </div>
-        ) : status === "oauth_error" ? (
+        ) : googleAdResult === "error" ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[13px] text-rose-800 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
             We couldn&apos;t finish connecting your Google account. Please try
             again.
           </div>
         ) : null}
 
-        <GoogleAdsCard workspaceId={workspace.id} data={googleAdsData} />
+        <GoogleAdsCard
+          workspaceId={workspace.id}
+          data={googleAdsData}
+          defaultExpanded={googleAdResult === "connected"}
+        />
         <WebFormCard workspaceId={workspace.id} data={webFormData} />
       </div>
     </DashboardLayout>

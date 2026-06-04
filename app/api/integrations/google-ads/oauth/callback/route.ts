@@ -21,12 +21,12 @@ import {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-function redirectTo(origin: string, workspaceId: string, status: string) {
+function redirectTo(origin: string, workspaceId: string, result: string) {
   const url = new URL(
     `/workspace/${workspaceId}/settings/integrations`,
     origin,
   );
-  url.searchParams.set("status", status);
+  url.searchParams.set("google-ad", result);
   return Response.redirect(url, 302);
 }
 
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     tokens = await exchangeCodeForTokens(code);
   } catch (err) {
     console.error("[google-ads-oauth] token exchange failed", err);
-    return redirectTo(origin, workspaceId, "oauth_error");
+    return redirectTo(origin, workspaceId, "error");
   }
 
   const accountEmail = await fetchGoogleUserEmail(tokens.access_token);
@@ -138,3 +138,4 @@ export async function GET(request: NextRequest) {
 
   return redirectTo(origin, workspaceId, "connected");
 }
+

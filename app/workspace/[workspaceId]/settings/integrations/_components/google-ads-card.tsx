@@ -86,14 +86,16 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 export default function GoogleAdsCard({
   workspaceId,
   data,
+  defaultExpanded = false,
 }: {
   workspaceId: string;
   data: GoogleAdsCardData;
+  defaultExpanded?: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const [revealed, setRevealed] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [error, setError] = useState<string | null>(null);
 
   function run(action: () => Promise<{ formError?: string } | undefined>) {
