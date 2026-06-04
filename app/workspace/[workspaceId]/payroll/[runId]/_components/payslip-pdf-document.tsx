@@ -73,6 +73,13 @@ const EMERALD_BG = "#d1fae5";
 const PAGE_W = 595.28;
 const HERO_H = 150;
 const PAD_X = 48;
+// Height of the slim header shown on continuation pages (2+), plus the breathing
+// room below it before content resumes. The page reserves (header + gap) at the
+// top on every page; page 1's full hero bleeds back over it via a negative
+// margin so the big hero still touches the top edge.
+const CONT_HEADER_H = 48;
+const CONT_GAP = 18;
+const CONT_TOP = CONT_HEADER_H + CONT_GAP;
 
 const STATUS_PILL: Record<PayrollRunStatus, { bg: string; fg: string }> = {
   draft: { bg: "#e2e8f0", fg: "#475569" },
@@ -83,16 +90,54 @@ const STATUS_PILL: Record<PayrollRunStatus, { bg: string; fg: string }> = {
 
 const styles = StyleSheet.create({
   page: {
-    paddingBottom: 32,
+    // Reserve space at the top for the continuation header (pages 2+) and at the
+    // bottom for the fixed footer so flowing content never collides with them.
+    paddingTop: CONT_TOP,
+    paddingBottom: 72,
     fontSize: 10,
     lineHeight: 1.45,
     color: INK,
     fontFamily: "Helvetica",
     flexDirection: "column",
   },
-  spacer: { flexGrow: 1 },
 
-  hero: { position: "relative", height: HERO_H, marginBottom: 24 },
+  // Negative top margin pulls the page-1 hero back over the reserved top space
+  // so it still bleeds to the very top edge.
+  hero: {
+    position: "relative",
+    height: HERO_H,
+    marginTop: -CONT_TOP,
+    marginBottom: 24,
+  },
+
+  contHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: CONT_HEADER_H,
+    backgroundColor: BRAND_DEEP,
+    borderBottomWidth: 2,
+    borderBottomColor: BRAND_PRIMARY,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: PAD_X,
+  },
+  contBrandText: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: "#ffffff",
+    letterSpacing: 1.4,
+  },
+  contRight: { flexDirection: "row", alignItems: "baseline", gap: 8 },
+  contEyebrow: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: 2,
+    color: "#e9d5ff",
+  },
+  contMeta: { fontSize: 9.5, color: "#ffffff" },
   heroSvg: { position: "absolute", top: 0, left: 0 },
   heroContent: {
     position: "absolute",
@@ -306,8 +351,13 @@ const styles = StyleSheet.create({
   blockBody: { fontSize: 9.5, color: TEXT, lineHeight: 1.55 },
 
   footer: {
-    marginTop: 16,
-    marginHorizontal: PAD_X,
+    // Fixed to the bottom of every page (page reserves room via paddingBottom).
+    // Absolute + fixed keeps it out of the column flow, so it can't push
+    // content past the page boundary and spawn a trailing blank page.
+    position: "absolute",
+    bottom: 24,
+    left: PAD_X,
+    right: PAD_X,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
@@ -416,6 +466,33 @@ function HeroBackground() {
   );
 }
 
+// Slim brand header pinned to the top of every page. It's rendered before the
+// hero, so on page 1 the full-bleed hero paints over and hides it; on
+// continuation pages (no hero) it's what greets the reader at the top. Plain
+// `fixed` (no render callback) so the Text actually renders — Text inside a
+// fixed render() callback silently fails to draw in @react-pdf/renderer.
+function ContinuationHeader({
+  employerName,
+  periodLabel,
+  number,
+}: {
+  employerName: string;
+  periodLabel: string;
+  number: string;
+}) {
+  return (
+    <View style={styles.contHeader} fixed>
+      <Text style={styles.contBrandText}>{employerName.toUpperCase()}</Text>
+      <View style={styles.contRight}>
+        <Text style={styles.contEyebrow}>PAYSLIP</Text>
+        <Text style={styles.contMeta}>
+          {periodLabel} · {number}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 function LineTable({
   heading,
   rows,
@@ -483,6 +560,13 @@ export function PayslipPdfDocument({
       subject={`Payslip for ${payslip.employee.name} — ${payslip.periodLabel}`}
     >
       <Page size="A4" style={styles.page}>
+        {/* Continuation header — only visible on pages 2+ */}
+        <ContinuationHeader
+          employerName={employerName}
+          periodLabel={payslip.periodLabel}
+          number={payslip.number}
+        />
+
         {/* ─── Hero ─── */}
         <View style={styles.hero}>
           <HeroBackground />
@@ -591,7 +675,6 @@ export function PayslipPdfDocument({
           ) : null}
         </View>
 
-        <View style={styles.spacer} />
         <Footer
           brand={company.legalName || employerName}
           employeeName={payslip.employee.name}
@@ -622,7 +705,7 @@ function Footer({
     (p) => p.trim().length > 0,
   );
   return (
-    <View style={styles.footer}>
+    <View style={styles.footer} fixed>
       <View style={styles.footerLeft}>
         <View style={styles.footerBrandRow}>
           <View style={styles.footerBrandDot} />
