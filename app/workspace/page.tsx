@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth, signOut } from "@/config/auth";
 import { connectDB } from "@/config/db";
 import Workspace from "@/models/workspace";
+import User from "@/models/user";
 import type { WorkspaceColor, WorkspaceStatus } from "@/lib/workspace";
 import type { UserRole } from "@/models/user";
 import { isPlatformAdminEmail } from "@/lib/platform-admin";
@@ -47,6 +48,13 @@ async function getWorkspaces(userId: string): Promise<WorkspaceCardData[]> {
 export default async function WorkspacePage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+
+  // Unverified users must verify their email before using workspaces.
+  await connectDB();
+  const account = await User.findById(session.user.id)
+    .select("emailVerified")
+    .lean();
+  if (!account?.emailVerified) redirect("/my-account/verify-email");
 
   const workspaces = await getWorkspaces(session.user.id);
 

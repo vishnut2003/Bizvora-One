@@ -13,6 +13,12 @@ import {
 type OtpEmailProps = {
   code: string;
   expiresInMinutes: number;
+  // Copy is parameterized so the same template serves both password-reset and
+  // email-verification. Defaults preserve the original password-reset wording.
+  heading?: string;
+  intro?: string;
+  previewLabel?: string;
+  footnote?: string;
 };
 
 // Brand colors mirror the Tailwind `from-primary to-secondary` gradient used
@@ -20,11 +26,20 @@ type OtpEmailProps = {
 const PRIMARY = "#8e51ff";
 const SECONDARY = "#e12afb";
 
-export default function OtpEmail({ code, expiresInMinutes }: OtpEmailProps) {
+export default function OtpEmail({
+  code,
+  expiresInMinutes,
+  heading = "Reset your password",
+  intro = "Use the verification code below to reset your password. Enter it on the password reset screen to continue.",
+  previewLabel = "password reset code",
+  footnote = "Didn't request a password reset? You can safely ignore this email — your password won't change.",
+}: OtpEmailProps) {
   return (
     <Html>
       <Head />
-      <Preview>Your BizvoraOne password reset code is {code}</Preview>
+      <Preview>
+        Your BizvoraOne {previewLabel} is {code}
+      </Preview>
       <Body style={body}>
         <Container style={container}>
           <Section
@@ -37,11 +52,8 @@ export default function OtpEmail({ code, expiresInMinutes }: OtpEmailProps) {
           </Section>
 
           <Section style={content}>
-            <Heading style={heading}>Reset your password</Heading>
-            <Text style={paragraph}>
-              Use the verification code below to reset your password. Enter it on
-              the password reset screen to continue.
-            </Text>
+            <Heading style={headingStyle}>{heading}</Heading>
+            <Text style={paragraph}>{intro}</Text>
 
             <Section style={codeWrap}>
               <Text style={codeText}>{code}</Text>
@@ -54,10 +66,7 @@ export default function OtpEmail({ code, expiresInMinutes }: OtpEmailProps) {
 
             <Hr style={divider} />
 
-            <Text style={footnote}>
-              Didn&apos;t request a password reset? You can safely ignore this
-              email — your password won&apos;t change.
-            </Text>
+            <Text style={footnoteStyle}>{footnote}</Text>
           </Section>
         </Container>
 
@@ -103,7 +112,7 @@ const content: React.CSSProperties = {
   padding: "32px",
 };
 
-const heading: React.CSSProperties = {
+const headingStyle: React.CSSProperties = {
   margin: "0 0 12px",
   color: "#18181b",
   fontSize: "20px",
@@ -148,7 +157,7 @@ const divider: React.CSSProperties = {
   borderTop: "1px solid #e4e4e7",
 };
 
-const footnote: React.CSSProperties = {
+const footnoteStyle: React.CSSProperties = {
   margin: 0,
   color: "#a1a1aa",
   fontSize: "12px",

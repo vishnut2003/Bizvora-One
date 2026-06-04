@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/config/auth";
 import { connectDB } from "@/config/db";
 import Workspace from "@/models/workspace";
+import User from "@/models/user";
 import { WORKSPACE_COLORS, type WorkspaceColor } from "@/lib/workspace";
 
 export type CreateWorkspaceState =
@@ -42,6 +43,15 @@ export async function createWorkspace(
   }
 
   await connectDB();
+
+  // Only verified emails can create workspaces. Read fresh from the DB —
+  // emailVerified isn't carried on the session token.
+  const user = await User.findById(session.user.id)
+    .select("emailVerified")
+    .lean();
+  if (!user?.emailVerified) {
+    return { formError: "Verify your email before creating a workspace." };
+  }
 
   let workspaceId: string;
   try {
