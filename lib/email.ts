@@ -10,7 +10,16 @@ function requiredEnv(name: string): string {
 }
 
 const RESEND_API_KEY = requiredEnv("RESEND_API_KEY");
-const FROM_EMAIL = requiredEnv("RESEND_EMAIL");
+const RESEND_EMAIL = requiredEnv("RESEND_EMAIL");
+
+// The display name inboxes show as the sender. Resend accepts the
+// "Name <email>" format. If RESEND_EMAIL already carries a display name we
+// respect it; otherwise we prefix the brand so recipients see "BizvoraOne"
+// instead of the bare address local-part (e.g. "no-replay").
+const FROM_NAME = process.env.RESEND_FROM_NAME || "BizvoraOne";
+const FROM_EMAIL = RESEND_EMAIL.includes("<")
+  ? RESEND_EMAIL
+  : `${FROM_NAME} <${RESEND_EMAIL}>`;
 
 // Instantiate the Resend client once at module scope so it is reused across
 // invocations in the serverless runtime.
