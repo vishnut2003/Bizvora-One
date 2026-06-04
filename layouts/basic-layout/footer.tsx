@@ -1,7 +1,5 @@
 import Link from "next/link";
 import Logo from "@/components/logo";
-import Button from "@/components/button";
-import Input from "@/components/input";
 
 const columns = [
   {
@@ -130,22 +128,20 @@ export default function Footer() {
 
           <div className="col-span-2 lg:col-span-2">
             <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-900 dark:text-zinc-100">
-              Stay in the loop
+              Get started
             </h3>
             <p className="mt-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-              Product updates, sales playbooks. One email a month.
+              Ready to close more deals? Spin up your workspace in minutes.
             </p>
-            <div className="mt-4 flex flex-col gap-2">
-              <Input
-                type="email"
-                placeholder="you@acme.co"
-                aria-label="Email address"
-                className="h-9"
-              />
-              <Button variant="primary" size="sm" className="px-3">
-                Subscribe
-              </Button>
-            </div>
+            <Link
+              href="/signup"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+            >
+              Start Now
+              <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
           </div>
         </div>
       </div>
