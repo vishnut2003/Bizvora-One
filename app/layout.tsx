@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: "BizvoraOne — A workspace for every team",
   description:
     "Create your own workspace and run your customer relationships your way. Pipelines, contacts, deals, and automations — built for teams of any size.",
+  verification: {
+    google: "rEUkjioKQhHreBjVE1GeUJAKvTuCnKBsIAoc8B42b4A",
+  },
 };
 
 export default function RootLayout({
