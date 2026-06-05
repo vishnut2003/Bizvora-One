@@ -34,6 +34,17 @@ const columns = [
   },
 ];
 
+const legalLinks = [
+  { label: "Privacy", href: "/privacy" },
+  { label: "Terms", href: "/terms" },
+  { label: "Security", href: "/security" },
+  { label: "Cookies", href: "/cookies" },
+  { label: "Sub-processors", href: "/subprocessors" },
+  { label: "DPA", href: "/dpa" },
+  { label: "Acceptable Use", href: "/acceptable-use" },
+  { label: "AI Disclosure", href: "/ai-disclosure" },
+];
+
 const socials = [
   {
     label: "X (Twitter)",
@@ -147,21 +158,18 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-zinc-200 dark:border-zinc-800">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-6 py-5 text-xs text-zinc-500 sm:flex-row dark:text-zinc-500">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-3 px-6 py-5 text-xs text-zinc-500 sm:flex-row sm:items-center dark:text-zinc-500">
           <p>&copy; {new Date().getFullYear()} Web Spider Solutions. All rights reserved.</p>
-          <div className="flex items-center gap-5">
-            <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">
-              Privacy
-            </a>
-            <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">
-              Terms
-            </a>
-            <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">
-              Security
-            </a>
-            <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">
-              Cookies
-            </a>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {legalLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="hover:text-zinc-900 dark:hover:text-zinc-300"
+              >
+                {link.label}
+              </Link>
+            ))}
             <span className="inline-flex items-center gap-1.5 text-zinc-500 dark:text-zinc-500">
               <span className="relative grid h-2 w-2 place-items-center">
                 <span className="absolute inset-0 animate-ping rounded-full bg-emerald-500/60" />

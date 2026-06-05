@@ -72,14 +72,16 @@ export default function SignupForm() {
             <span>
               I agree to the{" "}
               <Link
-                href="#"
+                href="/terms"
+                target="_blank"
                 className="font-medium text-zinc-900 underline-offset-2 hover:underline dark:text-zinc-100"
               >
                 Terms of Service
               </Link>{" "}
               and{" "}
               <Link
-                href="#"
+                href="/privacy"
+                target="_blank"
                 className="font-medium text-zinc-900 underline-offset-2 hover:underline dark:text-zinc-100"
               >
                 Privacy Policy
