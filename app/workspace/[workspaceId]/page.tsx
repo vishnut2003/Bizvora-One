@@ -26,6 +26,7 @@ import ProjectsOverview from "./_components/projects-overview";
 import HrOverview from "./_components/hr-overview";
 import PayrollOverview from "./_components/payroll-overview";
 import { QuickAction } from "./_components/overview-widgets";
+import OverviewGreeting from "./_components/overview-greeting";
 
 export const metadata: Metadata = {
   title: "Workspace — BizvoraOne",
@@ -55,6 +56,7 @@ export default async function WorkspaceOverviewPage({ params }: Props) {
     weekday: "long",
     month: "long",
     day: "numeric",
+    timeZone: "Asia/Kolkata",
   }).format(new Date());
 
   return (
@@ -91,12 +93,11 @@ export default async function WorkspaceOverviewPage({ params }: Props) {
                 <LayoutDashboard className="relative h-5 w-5" />
               </span>
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                  Overview · {todayLabel}
-                </p>
-                <h1 className="mt-1 text-[26px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
-                  {greeting}, {firstName}
-                </h1>
+                <OverviewGreeting
+                  firstName={firstName}
+                  initialGreeting={greeting}
+                  initialDateLabel={todayLabel}
+                />
                 <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">
                   Here&apos;s what&apos;s moving in{" "}
                   <span className="font-medium text-zinc-700 dark:text-zinc-300">
@@ -132,7 +133,15 @@ export default async function WorkspaceOverviewPage({ params }: Props) {
 }
 
 function greetingFor(d: Date): string {
-  const h = d.getHours();
+  // Read the hour in IST so the greeting is correct regardless of the
+  // server's timezone (local machine = IST, but Vercel runs in UTC).
+  const h = Number(
+    new Intl.DateTimeFormat("en-GB", {
+      hour: "numeric",
+      hour12: false,
+      timeZone: "Asia/Kolkata",
+    }).format(d),
+  );
   if (h < 5) return "Burning the midnight oil";
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
