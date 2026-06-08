@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 function greetingForHour(h: number): string {
   if (h < 5) return "Burning the midnight oil";
@@ -25,21 +25,25 @@ type Props = {
   initialDateLabel: string;
 };
 
+const emptySubscribe = () => () => {};
+
 export default function OverviewGreeting({
   firstName,
   initialGreeting,
   initialDateLabel,
 }: Props) {
-  const [greeting, setGreeting] = useState(initialGreeting);
-  const [today, setToday] = useState(initialDateLabel);
+  // false during SSR and the first (hydration) render, true after the client
+  // commits — then new Date() reflects the visitor's own timezone, so greeting
+  // and date match their local wall clock without a hydration mismatch.
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
 
-  useEffect(() => {
-    // Runs only in the browser, so new Date() reflects the visitor's
-    // own timezone — greeting and date match their local wall clock.
-    const now = new Date();
-    setGreeting(greetingForHour(now.getHours()));
-    setToday(dateLabel(now));
-  }, []);
+  const now = isClient ? new Date() : null;
+  const greeting = now ? greetingForHour(now.getHours()) : initialGreeting;
+  const today = now ? dateLabel(now) : initialDateLabel;
 
   return (
     <>

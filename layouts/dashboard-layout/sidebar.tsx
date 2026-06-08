@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Sparkles } from "lucide-react";
+import { Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { UserRole } from "@/lib/user";
 import NavList from "./nav-list";
+import FeedbackCard from "./feedback-card";
 import type { NavConfig } from "./nav";
 
 export default function Sidebar({
@@ -64,29 +65,7 @@ export default function Sidebar({
         />
       </div>
 
-      {compact ? null : (
-        <div className="shrink-0 pt-3">
-          <div className="relative overflow-hidden rounded-lg border border-zinc-200 bg-gradient-to-br from-white via-white to-primary/5 p-3 dark:border-zinc-800 dark:from-zinc-900 dark:via-zinc-900 dark:to-primary/10">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br from-primary/30 to-secondary/20 blur-2xl"
-            />
-            <div className="relative flex items-start gap-2.5">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/30">
-                <Sparkles className="h-3.5 w-3.5" />
-              </span>
-              <div>
-                <p className="text-[12px] font-semibold text-zinc-900 dark:text-zinc-100">
-                  All modules included
-                </p>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  Invite your whole team — every feature, every role.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {compact ? null : <FeedbackCard workspaceId={workspaceId} />}
     </aside>
   );
 }

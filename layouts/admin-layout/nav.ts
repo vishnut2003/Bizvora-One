@@ -2,6 +2,7 @@ import type { ComponentType, SVGProps } from "react";
 import {
   Building2Icon,
   LayoutDashboardIcon,
+  MessageSquareIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -46,6 +47,11 @@ export const navSections: NavSection[] = [
         href: "/admin/workspaces",
         label: "Workspaces",
         icon: Building2Icon,
+      },
+      {
+        href: "/admin/feedback",
+        label: "Feedback",
+        icon: MessageSquareIcon,
       },
     ],
   },
