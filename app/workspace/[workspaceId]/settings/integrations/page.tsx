@@ -9,6 +9,9 @@ import DashboardLayout from "@/layouts/dashboard-layout";
 import GoogleAdsCard, {
   type GoogleAdsCardData,
 } from "./_components/google-ads-card";
+import MetaAdsCard, {
+  type MetaAdsCardData,
+} from "./_components/meta-ads-card";
 import WebFormCard, {
   type WebFormCardData,
 } from "./_components/web-form-card";
@@ -19,7 +22,7 @@ export const metadata: Metadata = {
 
 type IntegrationsPageProps = {
   params: Promise<{ workspaceId: string }>;
-  searchParams: Promise<{ "google-ad"?: string }>;
+  searchParams: Promise<{ "google-ad"?: string; "meta-ad"?: string }>;
 };
 
 export default async function IntegrationsPage({
@@ -27,7 +30,9 @@ export default async function IntegrationsPage({
   searchParams,
 }: IntegrationsPageProps) {
   const { workspaceId } = await params;
-  const googleAdResult = (await searchParams)["google-ad"];
+  const search = await searchParams;
+  const googleAdResult = search["google-ad"];
+  const metaAdResult = search["meta-ad"];
 
   const {
     session,
@@ -39,16 +44,21 @@ export default async function IntegrationsPage({
   });
 
   await connectDB();
-  const [googleAdsIntegration, webFormIntegration] = await Promise.all([
-    Integration.findOne({
-      workspace: workspaceId,
-      provider: "google_ads",
-    }).lean(),
-    Integration.findOne({
-      workspace: workspaceId,
-      provider: "web_form",
-    }).lean(),
-  ]);
+  const [googleAdsIntegration, metaAdsIntegration, webFormIntegration] =
+    await Promise.all([
+      Integration.findOne({
+        workspace: workspaceId,
+        provider: "google_ads",
+      }).lean(),
+      Integration.findOne({
+        workspace: workspaceId,
+        provider: "meta_ads",
+      }).lean(),
+      Integration.findOne({
+        workspace: workspaceId,
+        provider: "web_form",
+      }).lean(),
+    ]);
 
   const base = getPublicBaseUrl();
   const googleAdsWebhookUrl = base
@@ -57,6 +67,13 @@ export default async function IntegrationsPage({
   const webFormWebhookUrl = base
     ? `${base}/api/webhooks/web-form/${workspaceId}`
     : `/api/webhooks/web-form/${workspaceId}`;
+  const metaAdsWebhookUrl = base
+    ? `${base}/api/webhooks/meta-ads/${workspaceId}`
+    : `/api/webhooks/meta-ads/${workspaceId}`;
+  // The tenant adds this to their Meta app's Valid OAuth Redirect URIs.
+  const metaOauthRedirectUri = base
+    ? `${base}/api/integrations/meta-ads/oauth/callback`
+    : `/api/integrations/meta-ads/oauth/callback`;
 
   const googleAdsData: GoogleAdsCardData = googleAdsIntegration
     ? {
@@ -71,6 +88,29 @@ export default async function IntegrationsPage({
         totalLeadsReceived: googleAdsIntegration.totalLeadsReceived ?? 0,
       }
     : { connected: false, webhookUrl: googleAdsWebhookUrl };
+
+  const metaAdsData: MetaAdsCardData = metaAdsIntegration
+    ? {
+        connected: true,
+        appId: metaAdsIntegration.meta?.appId ?? null,
+        hasOAuth: Boolean(metaAdsIntegration.oauth?.refreshToken),
+        accountLabel: metaAdsIntegration.oauth?.accountEmail ?? null,
+        pageId: metaAdsIntegration.meta?.pageId ?? null,
+        pageName: metaAdsIntegration.meta?.pageName ?? null,
+        // Strip the encrypted tokens — the client only needs id + name.
+        pendingPages: (metaAdsIntegration.meta?.pendingPages ?? []).map(
+          (p) => ({ id: p.id, name: p.name ?? "" }),
+        ),
+        status: metaAdsIntegration.status as "active" | "paused",
+        tokenInvalid: metaAdsIntegration.meta?.tokenStatus === "invalid",
+        lastEventAt: metaAdsIntegration.lastEventAt
+          ? new Date(metaAdsIntegration.lastEventAt).toISOString()
+          : null,
+        totalLeadsReceived: metaAdsIntegration.totalLeadsReceived ?? 0,
+        webhookUrl: metaAdsWebhookUrl,
+        verifyToken: metaAdsIntegration.webhookKey,
+      }
+    : { connected: false };
 
   const webFormData: WebFormCardData = webFormIntegration
     ? {
@@ -151,10 +191,50 @@ export default async function IntegrationsPage({
           </div>
         ) : null}
 
+        {metaAdResult === "connected" ? (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[13px] text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
+            Meta Ads connected. New leads from your Facebook &amp; Instagram
+            Lead Ads will appear in your Leads section automatically.
+          </div>
+        ) : metaAdResult === "select_page" ? (
+          <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-[13px] text-sky-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300">
+            Facebook account connected. Choose which Page should send its leads
+            to this workspace below.
+          </div>
+        ) : metaAdResult === "no_pages" ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+            We couldn&apos;t find any Facebook Pages on that account. Sign in
+            with an account that has admin access to your business Page.
+          </div>
+        ) : metaAdResult === "missing_credentials" ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+            Save your Meta App ID and App Secret below before connecting with
+            Facebook.
+          </div>
+        ) : metaAdResult === "page_in_use" ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+            That Facebook Page is already connected to another workspace.
+            Disconnect it there first, then try again.
+          </div>
+        ) : metaAdResult === "error" ? (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[13px] text-rose-800 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
+            We couldn&apos;t finish connecting your Facebook account. Please try
+            again.
+          </div>
+        ) : null}
+
         <GoogleAdsCard
           workspaceId={workspace.id}
           data={googleAdsData}
           defaultExpanded={googleAdResult === "connected"}
+        />
+        <MetaAdsCard
+          workspaceId={workspace.id}
+          data={metaAdsData}
+          oauthRedirectUri={metaOauthRedirectUri}
+          defaultExpanded={
+            metaAdResult === "connected" || metaAdResult === "select_page"
+          }
         />
         <WebFormCard workspaceId={workspace.id} data={webFormData} />
       </div>

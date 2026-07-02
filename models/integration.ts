@@ -19,6 +19,35 @@ const oauthSchema = new Schema(
   { _id: false },
 );
 
+// A Facebook Page the user manages, returned by /me/accounts and held until
+// they pick one. accessToken is AES-256-GCM ciphertext — never send to client.
+const metaPendingPageSchema = new Schema(
+  {
+    id: { type: String, required: true },
+    name: { type: String, default: "" },
+    accessToken: { type: String, default: null },
+  },
+  { _id: false },
+);
+
+// Meta Ads (Facebook Lead Ads) connector state. Multi-tenant: each workspace
+// brings its own Meta developer app, so the app credentials live here (the
+// integration's webhookKey doubles as the webhook verify token).
+const metaSchema = new Schema(
+  {
+    appId: { type: String, default: null },
+    // AES-256-GCM ciphertext (base64). Never log this value.
+    appSecret: { type: String, default: null },
+    pageId: { type: String, default: null },
+    pageName: { type: String, default: null },
+    // AES-256-GCM ciphertext (base64). Never log this value.
+    pageAccessToken: { type: String, default: null },
+    tokenStatus: { type: String, enum: ["valid", "invalid"], default: "valid" },
+    pendingPages: { type: [metaPendingPageSchema], default: [] },
+  },
+  { _id: false },
+);
+
 const defaultsSchema = new Schema(
   {
     priority: {
@@ -46,6 +75,7 @@ const integrationSchema = new Schema(
     },
     webhookKey: { type: String, required: true },
     oauth: { type: oauthSchema, default: () => ({}) },
+    meta: { type: metaSchema, default: null },
     campaigns: { type: Map, of: String, default: () => new Map() },
     forms: { type: Map, of: String, default: () => new Map() },
     defaults: { type: defaultsSchema, default: () => ({}) },
@@ -67,6 +97,15 @@ const integrationSchema = new Schema(
 );
 
 integrationSchema.index({ workspace: 1, provider: 1 }, { unique: true });
+// Routes app-level Meta webhooks to a workspace by page ID, and blocks the
+// same Facebook Page from being connected to two workspaces at once.
+integrationSchema.index(
+  { provider: 1, "meta.pageId": 1 },
+  {
+    unique: true,
+    partialFilterExpression: { "meta.pageId": { $type: "string" } },
+  },
+);
 
 export type IIntegration = InferSchemaType<typeof integrationSchema>;
 

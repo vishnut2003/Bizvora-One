@@ -2,12 +2,17 @@ import "server-only";
 import crypto from "crypto";
 import type { UserRole } from "@/lib/user";
 
-export const INTEGRATION_PROVIDERS = ["google_ads", "web_form"] as const;
+export const INTEGRATION_PROVIDERS = [
+  "google_ads",
+  "web_form",
+  "meta_ads",
+] as const;
 export type IntegrationProvider = (typeof INTEGRATION_PROVIDERS)[number];
 
 export const INTEGRATION_PROVIDER_LABEL: Record<IntegrationProvider, string> = {
   google_ads: "Google Ads",
   web_form: "Web Forms",
+  meta_ads: "Meta Ads",
 };
 
 export const INTEGRATION_MANAGER_ROLES: UserRole[] = ["owner", "admin"];

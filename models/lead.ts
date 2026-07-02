@@ -55,6 +55,7 @@ const externalSourceSchema = new Schema(
     externalId: { type: String, required: true },
     formId: { type: String, default: null },
     campaignId: { type: String, default: null },
+    adId: { type: String, default: null },
     gclid: { type: String, default: null },
     isTest: { type: Boolean, default: false },
   },

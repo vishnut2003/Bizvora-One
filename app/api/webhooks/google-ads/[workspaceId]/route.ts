@@ -85,7 +85,7 @@ export async function POST(
         country: mapped.country,
       },
       stage: "new",
-      source: "advertisement",
+      source: "google_ads",
       priority: mapped.priority,
       estimatedValue: 0,
       assignedTo: null,
