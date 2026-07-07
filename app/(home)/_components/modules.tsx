@@ -1,5 +1,10 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
 import Eyebrow from "@/components/eyebrow";
+import Popup from "@/components/popup";
+import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowUpRight,
   Building2,
@@ -21,6 +26,9 @@ type ModuleCard = {
   span?: string;
   visual?: ReactNode;
   badge?: string;
+  tagline: string;
+  details: string;
+  features: string[];
 };
 
 const modules: ModuleCard[] = [
@@ -31,12 +39,32 @@ const modules: ModuleCard[] = [
     span: "lg:col-span-2",
     icon: <Users className="h-5 w-5" />,
     visual: <CustomersVisual />,
+    tagline: "Every customer, one complete picture.",
+    details:
+      "Keep every customer relationship in one place. Each customer gets a full profile with contact details, open deals, notes, tasks, and a complete activity history — so anyone on your team can pick up a conversation without asking around.",
+    features: [
+      "Rich customer profiles with contact details and ownership",
+      "Notes and tasks attached directly to each customer",
+      "Deal history and total value at a glance",
+      "Activity timeline of every interaction and change",
+      "Convert quotes and vouchers without re-entering data",
+    ],
   },
   {
     title: "Leads & Pipeline",
     body:
       "Track prospects from new to won across drag-and-drop stages tailored to your team.",
     icon: <UserPlus className="h-5 w-5" />,
+    tagline: "From first touch to closed-won.",
+    details:
+      "Capture prospects and move them through a visual pipeline built around how your team actually sells. Drag leads between stages, set priorities and follow-up reminders, and convert won leads into customers in one click.",
+    features: [
+      "Drag-and-drop pipeline with customizable stages",
+      "Priorities, tags, and assignees on every lead",
+      "Follow-up reminders so nothing slips through",
+      "Full activity history on each lead",
+      "One-click conversion from lead to customer",
+    ],
   },
   {
     title: "AI Proposals",
@@ -44,18 +72,48 @@ const modules: ModuleCard[] = [
     body:
       "Draft proposals and quotes in seconds. Iterate over chat, export to PDF, send for signature.",
     icon: <FileText className="h-5 w-5" />,
+    tagline: "Professional proposals in seconds, not hours.",
+    details:
+      "Describe the deal and let AI draft a polished proposal or quotation for you. Refine it over chat until it reads exactly right, then export a branded PDF and send it off for signature — all without leaving your workspace.",
+    features: [
+      "AI-drafted proposals and quotations from a short brief",
+      "Iterate conversationally until it's right",
+      "Branded, ready-to-send PDF export",
+      "Send for signature directly",
+      "Linked to the lead or customer it belongs to",
+    ],
   },
   {
     title: "Projects & Tasks",
     body:
       "Turn won deals into delivery. Milestones, tasks, files, and a calendar — per project.",
     icon: <FolderKanban className="h-5 w-5" />,
+    tagline: "Won the deal? Deliver it here.",
+    details:
+      "Turn closed deals into organized delivery. Every project gets its own milestones, task board, files, and calendar, so your team always knows what's due, who owns it, and how the project is tracking.",
+    features: [
+      "Milestones to break delivery into clear phases",
+      "Task boards with owners and due dates",
+      "Files kept alongside the work they belong to",
+      "Per-project calendar of deadlines and events",
+      "Progress visible to everyone on the project",
+    ],
   },
   {
     title: "Accounts & Vouchers",
     body:
       "Tally-style sales orders, invoices, receipts, purchase orders, and payments — built in.",
     icon: <CreditCard className="h-5 w-5" />,
+    tagline: "Familiar Tally-style accounting, built in.",
+    details:
+      "Run day-to-day accounting without a separate tool. Create sales orders, invoices, receipts, purchase orders, and payment vouchers in a familiar Tally-style flow — every voucher linked to the right customer and stamped in the audit log.",
+    features: [
+      "Sales orders, invoices, and receipts",
+      "Purchase orders and payment vouchers",
+      "Itemized entries with automatic totals",
+      "Every voucher tied to a customer or party",
+      "Audit log entry on every voucher",
+    ],
   },
   {
     title: "HR, Roles & Workspaces",
@@ -64,10 +122,28 @@ const modules: ModuleCard[] = [
     span: "lg:col-span-3",
     icon: <IdCard className="h-5 w-5" />,
     visual: <RolesVisual />,
+    tagline: "The right access for every person.",
+    details:
+      "Onboard your team and control exactly what each person can see and do. Assign one of eight built-in roles — from Owner to Team Member — and keep every team's data isolated per workspace, with an audit trail behind it all.",
+    features: [
+      "Eight built-in roles covering sales, accounts, HR, and delivery",
+      "Simple employee onboarding and removal",
+      "Data isolated per workspace",
+      "Granular module access per role",
+      "Audit trails on sensitive actions",
+    ],
   },
 ];
 
 export default function Modules() {
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState<ModuleCard | null>(null);
+
+  function openModule(m: ModuleCard) {
+    setActive(m);
+    setOpen(true);
+  }
+
   return (
     <section
       id="modules"
@@ -89,7 +165,7 @@ export default function Modules() {
           {modules.map((m) => (
             <article
               key={m.title}
-              className={`group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-primary/40 ${m.span ?? ""}`}
+              className={`group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 transition-all focus-within:border-primary/40 focus-within:shadow-lg focus-within:shadow-primary/5 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-primary/40 ${m.span ?? ""}`}
             >
               <div
                 aria-hidden
@@ -104,7 +180,13 @@ export default function Modules() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                        {m.title}
+                        <button
+                          type="button"
+                          onClick={() => openModule(m)}
+                          className="cursor-pointer text-left focus:outline-none after:absolute after:inset-0 after:z-10"
+                        >
+                          {m.title}
+                        </button>
                       </h3>
                       {m.badge ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-linear-to-r from-primary to-secondary px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white">
@@ -125,6 +207,91 @@ export default function Modules() {
           ))}
         </div>
       </div>
+
+      <Popup
+        open={open}
+        onOpenChange={setOpen}
+        className="max-h-[88vh] overflow-hidden sm:max-w-lg"
+      >
+        {active ? (
+          <>
+            <div className="relative overflow-hidden border-b border-zinc-100 dark:border-zinc-800">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/6 via-white to-secondary/5 dark:from-primary/16 dark:via-zinc-900 dark:to-secondary/12"
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-linear-to-br from-primary/25 to-secondary/15 opacity-40 blur-3xl"
+              />
+              <div className="relative flex items-center gap-3.5 px-6 pb-5 pt-6">
+                <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-linear-to-br from-primary to-secondary text-white shadow-md shadow-primary/30">
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 bg-linear-to-b from-white/25 to-transparent"
+                  />
+                  <span className="relative [&>svg]:h-4 [&>svg]:w-4">
+                    {active.icon}
+                  </span>
+                </span>
+                <div className="min-w-0 flex-1">
+                  <DialogTitle className="flex items-center gap-2 text-[16px] font-semibold leading-tight tracking-tight text-zinc-900 dark:text-white">
+                    {active.title}
+                    {active.badge ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-linear-to-r from-primary to-secondary px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white">
+                        <Sparkles className="h-2.5 w-2.5" />
+                        {active.badge}
+                      </span>
+                    ) : null}
+                  </DialogTitle>
+                  <DialogDescription className="mt-0.5 text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    {active.tagline}
+                  </DialogDescription>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-h-[calc(88vh-10rem)] overflow-y-auto px-6 py-5">
+              <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-400">
+                {active.details}
+              </p>
+              <p className="mt-5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
+                What you get
+              </p>
+              <ul className="mt-2.5 space-y-2">
+                {active.features.map((f) => (
+                  <li
+                    key={f}
+                    className="flex items-start gap-2.5 text-[12.5px] leading-relaxed text-zinc-700 dark:text-zinc-300"
+                  >
+                    <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-emerald-100 dark:bg-emerald-500/15">
+                      <Check className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" />
+                    </span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50/60 px-6 py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="inline-flex h-8 items-center justify-center rounded-md border border-zinc-200 bg-white px-3 text-[12.5px] font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800/70"
+              >
+                Close
+              </button>
+              <Link
+                href="/signup"
+                className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-linear-to-r from-primary to-secondary px-3.5 text-[12.5px] font-semibold text-white shadow-sm shadow-primary/25 transition-opacity hover:opacity-90"
+              >
+                Start free trial
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </>
+        ) : null}
+      </Popup>
     </section>
   );
 }
