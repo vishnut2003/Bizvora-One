@@ -7,10 +7,10 @@ import { isPlatformAdminEmail } from "@/lib/platform-admin";
 import UserMenu from "./user-menu";
 
 const navLinks = [
-  { href: "#modules", label: "Modules" },
-  { href: "#roles", label: "Roles" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/#modules", label: "Modules" },
+  { href: "/#roles", label: "Roles" },
+  { href: "/#pricing", label: "Pricing" },
+  { href: "/#faq", label: "FAQ" },
 ];
 
 export default async function Header() {
