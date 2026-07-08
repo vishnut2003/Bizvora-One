@@ -17,8 +17,8 @@ export default function HowToConnectMetaAdsPage() {
         description="Bring leads from your Facebook & Instagram Lead Ads straight into your CRM — set up once, and every form submission becomes a lead within seconds."
         updated="2026-07-02"
         breadcrumbs={[
-          { label: "Docs" },
-          { label: "Integrations" },
+          { label: "Docs", href: "/docs" },
+          { label: "Integrations", href: "/docs/integrations" },
           { label: "Meta Ads" },
         ]}
         content={howToConnectMetaAdsContent}
