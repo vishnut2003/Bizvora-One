@@ -44,7 +44,7 @@ const legalLinks = [
 const socials = [
   {
     label: "X (Twitter)",
-    href: "#",
+    href: "https://x.com/InfoWebspider",
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
         <path d="M12.04 1.5h2.32l-5.07 5.8 5.96 7.88h-4.67l-3.66-4.78-4.19 4.78H.4l5.42-6.2L.1 1.5h4.78l3.3 4.36L12.04 1.5zm-.82 12.31h1.29L4.86 2.82H3.48l7.74 10.99z" />
@@ -53,7 +53,7 @@ const socials = [
   },
   {
     label: "LinkedIn",
-    href: "#",
+    href: "https://www.linkedin.com/company/web-spider-solutions/",
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
         <path d="M3.34 1.5a1.84 1.84 0 1 0 0 3.68 1.84 1.84 0 0 0 0-3.68zM1.7 6.18h3.3v8.32H1.7V6.18zM6.92 6.18h3.16v1.14h.05a3.46 3.46 0 0 1 3.12-1.4c3.34 0 3.96 2.2 3.96 5.05v4.53h-3.3v-4.02c0-.96-.02-2.2-1.34-2.2-1.34 0-1.55 1.04-1.55 2.13v4.09h-3.3V6.18z" />
@@ -61,17 +61,26 @@ const socials = [
     ),
   },
   {
-    label: "GitHub",
-    href: "#",
+    label: "Instagram",
+    href: "https://www.instagram.com/webspidersolutions/",
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-        <path d="M8 .5a7.5 7.5 0 0 0-2.37 14.62c.37.07.5-.16.5-.36v-1.27c-2.09.46-2.53-1-2.53-1-.34-.87-.84-1.1-.84-1.1-.68-.47.05-.46.05-.46.76.05 1.16.78 1.16.78.67 1.15 1.76.82 2.19.63.07-.49.26-.82.48-1.01-1.67-.19-3.43-.84-3.43-3.72 0-.82.3-1.5.78-2.02-.08-.19-.34-.96.07-2 0 0 .63-.2 2.07.77a7.2 7.2 0 0 1 3.78 0c1.44-.97 2.07-.77 2.07-.77.41 1.04.15 1.81.07 2 .48.52.78 1.2.78 2.02 0 2.89-1.77 3.53-3.45 3.71.27.23.51.69.51 1.4v2.08c0 .2.13.44.51.36A7.5 7.5 0 0 0 8 .5z" />
+        <path d="M8 1.44c2.14 0 2.39.01 3.23.05.78.04 1.2.17 1.49.28.37.15.64.32.92.6.28.28.45.55.6.92.11.28.24.71.28 1.49.04.84.05 1.09.05 3.22s-.01 2.39-.05 3.23c-.04.78-.17 1.2-.28 1.49-.15.37-.32.64-.6.92-.28.28-.55.45-.92.6-.28.11-.71.24-1.49.28-.84.04-1.09.05-3.23.05s-2.39-.01-3.23-.05c-.78-.04-1.2-.17-1.49-.28a2.48 2.48 0 0 1-.92-.6 2.48 2.48 0 0 1-.6-.92c-.11-.28-.24-.71-.28-1.49C1.45 10.39 1.44 10.14 1.44 8s.01-2.38.05-3.22c.04-.78.17-1.21.28-1.49.15-.37.32-.64.6-.92.28-.28.55-.45.92-.6.29-.11.71-.24 1.49-.28C5.62 1.45 5.87 1.44 8 1.44zm0 3.53a3.03 3.03 0 1 0 0 6.06 3.03 3.03 0 0 0 0-6.06zm0 5a1.97 1.97 0 1 1 0-3.94 1.97 1.97 0 0 1 0 3.94zm3.86-5.12a.71.71 0 1 1-1.42 0 .71.71 0 0 1 1.42 0z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/webspidersolutions1",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+        <path d="M15 8a7 7 0 1 0-8.09 6.92v-4.9H5.13V8h1.78V6.46c0-1.76 1.05-2.73 2.65-2.73.77 0 1.57.14 1.57.14v1.72h-.89c-.87 0-1.14.54-1.14 1.1V8h1.95l-.31 2.02H9.09v4.9A7 7 0 0 0 15 8z" />
       </svg>
     ),
   },
   {
     label: "YouTube",
-    href: "#",
+    href: "https://www.youtube.com/@webspidersolutions",
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
         <path d="M15.32 4.5a1.9 1.9 0 0 0-1.34-1.34C12.78 2.83 8 2.83 8 2.83s-4.78 0-5.98.33A1.9 1.9 0 0 0 .68 4.5C.35 5.7.35 8 .35 8s0 2.3.33 3.5a1.9 1.9 0 0 0 1.34 1.34c1.2.33 5.98.33 5.98.33s4.78 0 5.98-.33a1.9 1.9 0 0 0 1.34-1.34c.33-1.2.33-3.5.33-3.5s0-2.3-.33-3.5zM6.5 10.3V5.7l3.96 2.3-3.96 2.3z" />
@@ -105,6 +114,8 @@ export default function Footer() {
                   key={s.label}
                   href={s.href}
                   aria-label={s.label}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="grid h-8 w-8 place-items-center rounded-md border border-zinc-200 bg-white text-zinc-600 transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-primary/10"
                 >
                   {s.icon}
