@@ -16,8 +16,7 @@ const columns = [
     title: "Resources",
     links: [
       { label: "Docs", href: "/docs" },
-      { label: "Sales playbook", href: "#" },
-      { label: "Help center", href: "#" },
+      { label: "Help center", href: "/help" },
       { label: "Integrations", href: "#" },
       { label: "API reference", href: "#" },
     ],
