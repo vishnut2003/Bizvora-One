@@ -23,10 +23,9 @@ const columns = [
     title: "Company",
     links: [
       { label: "About", href: "/about" },
-      { label: "Customers", href: "#" },
-      { label: "Blog", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "Contact sales", href: "#" },
+      { label: "Blog", href: "/blogs" },
+      { label: "Careers", href: "/careers" },
+      { label: "Contact sales", href: "mailto:support@bizvoraone.com" },
     ],
   },
 ];
