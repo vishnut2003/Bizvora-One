@@ -5,11 +5,9 @@ const columns = [
   {
     title: "Product",
     links: [
-      { label: "Features", href: "#features" },
-      { label: "How it works", href: "#how-it-works" },
-      { label: "Pricing", href: "#pricing" },
-      { label: "Changelog", href: "#" },
-      { label: "Roadmap", href: "#" },
+      { label: "Modules", href: "/#modules" },
+      { label: "How it works", href: "/#how-it-works" },
+      { label: "Pricing", href: "/#pricing" },
     ],
   },
   {
