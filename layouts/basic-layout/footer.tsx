@@ -17,8 +17,8 @@ const columns = [
     links: [
       { label: "Docs", href: "/docs" },
       { label: "Help center", href: "/help" },
-      { label: "Integrations", href: "#" },
-      { label: "API reference", href: "#" },
+      { label: "Integrations", href: "/docs/integrations" },
+      { label: "Contact support", href: "mailto:support@bizvoraone.com" },
     ],
   },
   {
