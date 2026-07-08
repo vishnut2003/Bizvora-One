@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import AuthSessionProvider from "@/providers/session-provider";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next"
 import "./globals.css";
 
 const rubik = Rubik({
@@ -34,6 +35,7 @@ export default function RootLayout({
           showSpinner={false}
         />
         <AuthSessionProvider>{children}</AuthSessionProvider>
+        <VercelAnalytics />
       </body>
     </html>
   );
