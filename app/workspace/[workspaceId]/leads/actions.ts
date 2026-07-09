@@ -93,7 +93,11 @@ function parseTags(input: string): string[] {
 
 function parseDateInput(value: string): Date | null {
   if (!value) return null;
-  const d = new Date(value);
+  // The follow-up is a date-only value. Canonicalize a `yyyy-MM-dd` calendar
+  // date to UTC midnight so it stores/compares/formats the same calendar day
+  // regardless of the runtime timezone (Vercel runs in UTC).
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.exec(value);
+  const d = dateOnly ? new Date(`${value}T00:00:00.000Z`) : new Date(value);
   return Number.isNaN(d.getTime()) ? null : d;
 }
 

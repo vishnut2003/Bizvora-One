@@ -91,9 +91,15 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
-function formatDateTimeLocal(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+// Follow-up dates are date-only values stored at UTC midnight. Format them in
+// UTC so the calendar day is stable regardless of the runtime timezone.
+function formatDateOnly(date: Date): string {
+  return new Intl.DateTimeFormat("en-IN", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
 }
 
 function formatAbsoluteDateTime(date: Date): string {
@@ -149,8 +155,8 @@ function buildActivitySummary(
     case "follow_up_changed": {
       const from = data.from as string | null | undefined;
       const to = data.to as string | null | undefined;
-      const fromLabel = from ? formatDate(new Date(from)) : "—";
-      const toLabel = to ? formatDate(new Date(to)) : "—";
+      const fromLabel = from ? formatDateOnly(new Date(from)) : "—";
+      const toLabel = to ? formatDateOnly(new Date(to)) : "—";
       if (!from && to) return `set the follow-up to ${toLabel}.`;
       if (from && !to) return "cleared the follow-up.";
       return `moved follow-up from ${fromLabel} → ${toLabel}.`;
@@ -208,17 +214,20 @@ function relativeDay(date: Date): {
   label: string;
   tone: "overdue" | "today" | "soon" | "future";
 } {
+  // Compare calendar days in UTC — follow-up dates are stored at UTC midnight,
+  // and "today" is the UTC calendar day. This keeps the label independent of
+  // the runtime timezone (Vercel runs in UTC).
   const now = new Date();
-  const start = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-  ).getTime();
-  const target = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-  ).getTime();
+  const start = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+  );
+  const target = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+  );
   const dayMs = 24 * 60 * 60 * 1000;
   const diffDays = Math.round((target - start) / dayMs);
 
@@ -229,7 +238,7 @@ function relativeDay(date: Date): {
     };
   if (diffDays === 0) return { label: "Today", tone: "today" };
   if (diffDays <= 3) return { label: `in ${diffDays}d`, tone: "soon" };
-  return { label: formatDate(date), tone: "future" };
+  return { label: formatDateOnly(date), tone: "future" };
 }
 
 const followUpToneClass: Record<
@@ -409,7 +418,11 @@ export default async function LeadsPage({
 
   // Stats — independent of filters, scoped to workspace
   const now = new Date();
-  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  // Follow-up dates are stored at UTC midnight, so bucket "today"/"overdue"
+  // against UTC calendar-day boundaries to match.
+  const dayStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
   const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
@@ -776,7 +789,7 @@ export default async function LeadsPage({
                   assignedTo: assignedToId ?? "",
                   tags: (lead.tags ?? []).join(", "),
                   nextFollowUpAt: followUp
-                    ? formatDateTimeLocal(followUp)
+                    ? followUp.toISOString().slice(0, 10)
                     : "",
                   lostReason: lead.lostReason ?? "",
                 };

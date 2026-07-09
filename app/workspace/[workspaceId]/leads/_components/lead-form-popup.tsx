@@ -43,6 +43,21 @@ import {
 import type { UserRole } from "@/lib/user";
 import type { LeadActionState } from "../actions";
 
+// The follow-up field is a date-only value carried through the form as a
+// timezone-free `yyyy-MM-dd` string. These two helpers convert to/from a
+// local-midnight Date so the calendar highlights and reports the exact day
+// the user clicks, regardless of browser or server timezone.
+function toDateOnly(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function parseDateOnly(value: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!m) return null;
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
+
 const STAGE_DOT_CLASS: Record<LeadStage, string> = {
   new: "bg-sky-500",
   attempting_contact: "bg-cyan-500",
@@ -631,11 +646,11 @@ export default function LeadFormPopup({
                     id="lead-nextFollowUpAt"
                     value={
                       values.nextFollowUpAt
-                        ? new Date(values.nextFollowUpAt)
+                        ? parseDateOnly(values.nextFollowUpAt)
                         : null
                     }
                     onChange={(d) =>
-                      set("nextFollowUpAt", d ? d.toISOString() : "")
+                      set("nextFollowUpAt", d ? toDateOnly(d) : "")
                     }
                     placeholder="Pick a date"
                     invalid={Boolean(errs?.nextFollowUpAt)}
