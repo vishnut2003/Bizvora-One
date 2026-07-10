@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { Pencil } from "lucide-react";
 import type { UserRole } from "@/lib/user";
-import { updateLead, type LeadActionState } from "../actions";
+import {
+  generateLeadNote,
+  updateLead,
+  type LeadActionState,
+} from "../actions";
 import LeadFormPopup, {
   type LeadFormDefaults,
   type LeadFormMember,
@@ -56,6 +60,7 @@ export default function EditLeadButton({
         currentUserId={currentUserId}
         actorRole={actorRole}
         onSubmit={handleSubmit}
+        onGenerateNote={(input) => generateLeadNote(workspaceId, input)}
       />
     </>
   );

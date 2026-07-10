@@ -4,7 +4,11 @@ import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import Button from "@/components/button";
 import type { UserRole } from "@/lib/user";
-import { createLead, type LeadActionState } from "../actions";
+import {
+  createLead,
+  generateLeadNote,
+  type LeadActionState,
+} from "../actions";
 import LeadFormPopup, {
   EMPTY_LEAD_DEFAULTS,
   type LeadFormMember,
@@ -54,6 +58,7 @@ export default function AddLeadButton({
         currentUserId={currentUserId}
         actorRole={actorRole}
         onSubmit={handleSubmit}
+        onGenerateNote={(input) => generateLeadNote(workspaceId, input)}
       />
     </>
   );

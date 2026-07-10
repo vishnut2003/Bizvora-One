@@ -19,6 +19,7 @@ import {
   canManageLead,
   canViewLeads,
 } from "@/lib/lead";
+import { runLeadNoteAssistant, type LeadNoteInput } from "@/lib/lead-note-ai";
 import { notifyAssignment } from "@/lib/notify-assignment";
 import { getActorRole } from "@/lib/workspace-access";
 
@@ -580,5 +581,76 @@ export async function updateLead(
 
   revalidatePath(`/workspace/${workspaceId}/leads`);
   return { ok: true };
+}
+
+const AI_NOTE_SEED_MAX = 4000;
+const AI_NOTE_HISTORY_MAX = 20;
+const AI_NOTE_HISTORY_LINE_MAX = 1000;
+
+/**
+ * Draft a first-touch note for a lead with Claude, from the fields the rep has
+ * entered so far plus any rough text already in the note box. This does not
+ * persist anything — it only returns text for the client to drop into the
+ * textarea, where the rep can edit it before saving the lead.
+ */
+export async function generateLeadNote(
+  workspaceId: string,
+  input: LeadNoteInput,
+): Promise<{ ok: true; note: string } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { ok: false, error: "Your session expired. Please sign in again." };
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+    return { ok: false, error: "Invalid workspace." };
+  }
+
+  await connectDB();
+
+  const workspace = await Workspace.findById(workspaceId);
+  if (!workspace) return { ok: false, error: "Workspace not found." };
+
+  const actorRole = getActorRole(workspace, session.user.id);
+  if (!canViewLeads(actorRole)) {
+    return { ok: false, error: "You don't have permission to add leads." };
+  }
+
+  const cleaned: LeadNoteInput = {
+    name: input.name?.trim(),
+    company: input.company?.trim(),
+    email: input.email?.trim(),
+    phone: input.phone?.trim(),
+    stage: input.stage?.trim(),
+    source: input.source?.trim(),
+    priority: input.priority?.trim(),
+    tags: Array.isArray(input.tags)
+      ? input.tags.map((t) => String(t).trim()).filter(Boolean).slice(0, 20)
+      : [],
+    existingNotes: Array.isArray(input.existingNotes)
+      ? input.existingNotes
+          .map((n) => String(n).trim().slice(0, AI_NOTE_HISTORY_LINE_MAX))
+          .filter(Boolean)
+          .slice(-AI_NOTE_HISTORY_MAX)
+      : [],
+    seed: input.seed?.slice(0, AI_NOTE_SEED_MAX),
+  };
+
+  try {
+    const note = await runLeadNoteAssistant(cleaned, workspace.name);
+    if (!note) {
+      return { ok: false, error: "Couldn't generate a note. Try again." };
+    }
+    return { ok: true, note };
+  } catch (err) {
+    console.error("[generateLeadNote] AI call failed", err);
+    return {
+      ok: false,
+      error:
+        err instanceof Error && err.message.includes("ANTHROPIC_API_KEY")
+          ? "Claude API key is not configured."
+          : "Couldn't generate a note. Try again.",
+    };
+  }
 }
 

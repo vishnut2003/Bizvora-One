@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
+  Loader2,
   MessageSquare,
   Pencil,
   Sparkles,
@@ -127,6 +128,23 @@ export const EMPTY_LEAD_DEFAULTS: LeadFormDefaults = {
 const labelClass =
   "text-[12px] font-medium text-zinc-700 dark:text-zinc-300";
 
+export type LeadNoteDraftInput = {
+  name?: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+  stage?: string;
+  source?: string;
+  priority?: string;
+  tags?: string[];
+  existingNotes?: string[];
+  seed?: string;
+};
+
+export type GenerateNoteResult =
+  | { ok: true; note: string }
+  | { ok: false; error: string };
+
 type LeadFormPopupProps = {
   open: boolean;
   onOpenChange: (next: boolean) => void;
@@ -140,6 +158,8 @@ type LeadFormPopupProps = {
     formData: FormData,
     state: LeadActionState,
   ) => Promise<LeadActionState>;
+  /** Draft the note with Claude. Bound to the workspace by the parent. */
+  onGenerateNote?: (input: LeadNoteDraftInput) => Promise<GenerateNoteResult>;
 };
 
 export default function LeadFormPopup({
@@ -152,11 +172,14 @@ export default function LeadFormPopup({
   actorRole,
   notes,
   onSubmit,
+  onGenerateNote,
 }: LeadFormPopupProps) {
   const [values, setValues] = useState<LeadFormDefaults>(defaults);
   const [noteBody, setNoteBody] = useState("");
   const [state, setState] = useState<LeadActionState>(undefined);
   const [pending, startTransition] = useTransition();
+  const [generating, setGenerating] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const memberOptions = useMemo(() => {
@@ -220,6 +243,7 @@ export default function LeadFormPopup({
       setValues(defaults);
       setNoteBody("");
       setState(undefined);
+      setAiError(null);
       formRef.current?.reset();
     }
     prevOpenRef.current = open;
@@ -274,6 +298,37 @@ export default function LeadFormPopup({
       "tags",
       parsedTags.filter((t) => t !== tag).join(", "),
     );
+  };
+
+  const handleGenerateNote = async () => {
+    if (!onGenerateNote || generating) return;
+    setGenerating(true);
+    setAiError(null);
+    try {
+      const result = await onGenerateNote({
+        name: values.name,
+        company: values.company,
+        email: values.email,
+        phone: values.phone,
+        stage: values.stage,
+        source: values.source,
+        priority: values.priority,
+        tags: parsedTags,
+        existingNotes: (notes ?? []).map(
+          (n) => `${n.createdAt} — ${n.authorName}: ${n.body}`,
+        ),
+        seed: noteBody,
+      });
+      if (result.ok) {
+        setNoteBody(result.note);
+      } else {
+        setAiError(result.error);
+      }
+    } catch {
+      setAiError("Couldn't generate a note. Try again.");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -816,9 +871,27 @@ export default function LeadFormPopup({
             ) : null}
 
             <div>
-              <label htmlFor="lead-noteBody" className={labelClass}>
-                {mode === "edit" ? "Add a note" : "First note (optional)"}
-              </label>
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="lead-noteBody" className={labelClass}>
+                  {mode === "edit" ? "Add a note" : "First note (optional)"}
+                </label>
+                {onGenerateNote ? (
+                  <button
+                    type="button"
+                    onClick={handleGenerateNote}
+                    disabled={generating || pending}
+                    aria-busy={generating}
+                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11.5px] font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-primary/15"
+                  >
+                    {generating ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    {generating ? "Drafting…" : "Draft with AI"}
+                  </button>
+                ) : null}
+              </div>
               <textarea
                 id="lead-noteBody"
                 name="noteBody"
@@ -829,6 +902,11 @@ export default function LeadFormPopup({
                 placeholder="Call summary, intent signals, next step…"
                 className="mt-2 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               />
+              {aiError ? (
+                <p className="mt-1.5 text-[11px] text-red-600 dark:text-red-400">
+                  {aiError}
+                </p>
+              ) : null}
               {noteBody.length > 0 ? (
                 <p className="mt-1.5 flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-500">
                   <span>
