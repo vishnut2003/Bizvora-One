@@ -11,6 +11,7 @@ import {
   FolderOpen,
   IdCard,
   LayoutDashboardIcon,
+  LineChart,
   ListTodo,
   PhoneCall,
   PlugZap,
@@ -73,7 +74,10 @@ export const navSections: NavSection[] = [
   },
   {
     heading: "Project Management",
-    items: [{ href: "/projects", label: "Projects", icon: FolderKanban }],
+    items: [
+      { href: "/projects", label: "Projects", icon: FolderKanban },
+      { href: "/projects-insights", label: "Projects Insights", icon: LineChart },
+    ],
     restrictedTo: ["owner", "admin", "project_manager", "team_member"],
   },
   {
