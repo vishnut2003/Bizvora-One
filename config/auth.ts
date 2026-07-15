@@ -1,9 +1,9 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import bcrypt from "bcryptjs";
 import { connectDB } from "@/config/db";
 import User, { type UserRole } from "@/models/user";
+import { verifyEmailPassword } from "@/lib/credentials";
 
 class InvalidCredentialsError extends CredentialsSignin {
   code = "invalid_credentials";
@@ -38,35 +38,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
-        const email =
-          typeof credentials?.email === "string"
-            ? credentials.email.trim().toLowerCase()
-            : "";
-        const password =
-          typeof credentials?.password === "string" ? credentials.password : "";
-
-        if (!email || !password) throw new InvalidCredentialsError();
-
-        await connectDB();
-        const user = await User.findOne({ email }).select(
-          "+password name email role providers disabled",
+        const result = await verifyEmailPassword(
+          credentials?.email,
+          credentials?.password,
         );
-        if (!user) throw new InvalidCredentialsError();
 
-        if (!user.providers.includes("credentials") || !user.password) {
-          throw new WrongProviderError();
+        if (!result.ok) {
+          switch (result.code) {
+            case "wrong_provider":
+              throw new WrongProviderError();
+            case "account_disabled":
+              throw new AccountDisabledError();
+            default:
+              throw new InvalidCredentialsError();
+          }
         }
 
-        const ok = await bcrypt.compare(password, user.password);
-        if (!ok) throw new InvalidCredentialsError();
-
-        if (user.disabled) throw new AccountDisabledError();
-
         return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
+          id: result.user.id,
+          name: result.user.name,
+          email: result.user.email,
+          role: result.user.role,
         };
       },
     }),
