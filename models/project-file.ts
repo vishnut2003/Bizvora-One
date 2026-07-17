@@ -19,7 +19,7 @@ const projectFileSchema = new Schema(
     },
     kind: { type: String, enum: PROJECT_FILE_KINDS, required: true },
     name: { type: String, required: true, trim: true, maxlength: 200 },
-    // Populated for `kind: "upload"`.
+    // Populated for `kind: "upload"` — the full public Vercel Blob URL.
     storagePath: { type: String, trim: true, default: "" },
     originalName: { type: String, trim: true, default: "" },
     contentType: { type: String, trim: true, default: "" },

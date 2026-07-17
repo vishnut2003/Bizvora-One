@@ -1,84 +1,41 @@
-// Server-only Firebase Storage helpers.
-// Import from Server Components, Server Actions, or route handlers — never
-// from client components (firebase-admin requires the Node.js runtime).
+// Server-only Vercel Blob storage helpers.
+// Import from Server Components, Server Actions, or route handlers — never from
+// client components. Reads BLOB_READ_WRITE_TOKEN from the environment (injected
+// automatically on Vercel when a Blob store is connected).
 
-import { getStorageBucket } from "@/config/firebase";
+import { del, put } from "@vercel/blob";
 
 export type UploadOptions = {
   /** MIME type — e.g. "image/png", "application/pdf". */
   contentType?: string;
-  /** Arbitrary custom metadata stored alongside the object. */
-  metadata?: Record<string, string>;
-  /** When true, the uploaded object is made publicly readable. */
-  makePublic?: boolean;
 };
 
 /**
- * Upload a file to the configured Firebase Storage bucket.
- * @param data Buffer, Uint8Array, or any BufferSource of the file contents.
- * @param destination Bucket-relative path, e.g. "leads/abc/avatar.png".
- * @returns The bucket-relative path of the stored object.
+ * Upload a file to Vercel Blob with public access.
+ * @param data Buffer or Uint8Array of the file contents.
+ * @param pathname Blob key, e.g. "workspaces/abc/projects/xyz/files/<uuid>-name.pdf".
+ * @returns The full public Blob URL (persist this — it's what downloads and
+ *   deletes both operate on).
  */
 export async function uploadFile(
   data: Buffer | Uint8Array,
-  destination: string,
+  pathname: string,
   options: UploadOptions = {},
 ): Promise<string> {
-  const bucket = getStorageBucket();
-  const file = bucket.file(destination);
-  const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
-  await file.save(buffer, {
+  const blob = await put(pathname, Buffer.from(data), {
+    access: "public",
     contentType: options.contentType,
-    metadata: options.metadata ? { metadata: options.metadata } : undefined,
-    resumable: false,
+    // The caller's pathname already carries a randomUUID(), so keep the key
+    // exactly as given rather than appending another random suffix.
+    addRandomSuffix: false,
   });
-  if (options.makePublic) {
-    await file.makePublic();
-  }
-  return destination;
+  return blob.url;
 }
 
 /**
- * Delete an object from the bucket. Throws if it doesn't exist — call
- * `fileExists` first if you want a soft-delete behaviour.
+ * Delete a blob. Accepts the public Blob URL (what we persist) or a pathname.
+ * No-op-safe: `del` does not throw if the blob is already gone.
  */
-export async function deleteFile(destination: string): Promise<void> {
-  const bucket = getStorageBucket();
-  await bucket.file(destination).delete();
-}
-
-/**
- * Check whether an object exists in the bucket.
- */
-export async function fileExists(destination: string): Promise<boolean> {
-  const bucket = getStorageBucket();
-  const [exists] = await bucket.file(destination).exists();
-  return exists;
-}
-
-/**
- * Generate a time-limited signed URL for reading the object. Works even on
- * private buckets — useful for one-off downloads / previews.
- * @param expiresInSeconds Defaults to 1 hour.
- */
-export async function getSignedDownloadUrl(
-  destination: string,
-  expiresInSeconds = 60 * 60,
-): Promise<string> {
-  const bucket = getStorageBucket();
-  const [url] = await bucket.file(destination).getSignedUrl({
-    action: "read",
-    expires: Date.now() + expiresInSeconds * 1000,
-  });
-  return url;
-}
-
-/**
- * Canonical public URL for an object. Only resolves if the object (or the
- * bucket) is configured for public read access.
- */
-export function getPublicUrl(destination: string): string {
-  const bucket = getStorageBucket();
-  const encoded = encodeURIComponent(destination).replace(/%2F/g, "/");
-  return `https://storage.googleapis.com/${bucket.name}/${encoded}`;
+export async function deleteFile(urlOrPathname: string): Promise<void> {
+  await del(urlOrPathname);
 }

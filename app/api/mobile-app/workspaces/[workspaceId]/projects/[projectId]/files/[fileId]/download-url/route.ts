@@ -1,5 +1,4 @@
 import ProjectFile from "@/models/project-file";
-import { getSignedDownloadUrl } from "@/lib/storage";
 import { MobileApiError, requireMobileWorkspace } from "@/lib/mobile-auth";
 import { ok, requireObjectId, withMobile } from "@/lib/mobile-api";
 import {
@@ -9,8 +8,6 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const SIGNED_URL_TTL_SECONDS = 60 * 60;
 
 type Ctx = {
   params: Promise<{ workspaceId: string; projectId: string; fileId: string }>;
@@ -41,20 +38,6 @@ export const GET = withMobile(async (req, ctx: Ctx) => {
 
   if (!file.storagePath) throw new MobileApiError(404, "file_not_found");
 
-  try {
-    const url = await getSignedDownloadUrl(
-      file.storagePath,
-      SIGNED_URL_TTL_SECONDS,
-    );
-    return ok({
-      url,
-      kind: "upload",
-      expiresAt: new Date(
-        Date.now() + SIGNED_URL_TTL_SECONDS * 1000,
-      ).toISOString(),
-    });
-  } catch (err) {
-    console.error("[mobile files/download-url] signed url failed", err);
-    throw new MobileApiError(500, "download_url_failed");
-  }
+  // storagePath holds the full public Blob URL, which never expires.
+  return ok({ url: file.storagePath, kind: "upload", expiresAt: null });
 });

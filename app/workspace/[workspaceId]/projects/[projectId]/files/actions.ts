@@ -13,7 +13,10 @@ import { getActorRole } from "@/lib/workspace-access";
 import { canManageProjects, canViewAllProjects } from "@/lib/project";
 import { deleteFile, uploadFile } from "@/lib/storage";
 
-const MAX_UPLOAD_BYTES = 25 * 1024 * 1024; // 25 MB
+// Vercel serverless caps the request body at ~4.5 MB, which this server-side
+// upload path must stay under. Files near the ceiling can still 413 once
+// multipart form overhead is added.
+const MAX_UPLOAD_BYTES = 4.5 * 1024 * 1024; // ~4.5 MB
 
 export type FileActionState = {
   ok?: true;
@@ -98,7 +101,7 @@ export async function uploadProjectFile(
     return { errors: { file: "Choose a file to upload." } };
   }
   if (file.size > MAX_UPLOAD_BYTES) {
-    return { errors: { file: "File is too large (max 25 MB)." } };
+    return { errors: { file: "File is too large (max 4.5 MB)." } };
   }
 
   const originalName = sanitizeFileName(file.name);
@@ -106,14 +109,11 @@ export async function uploadProjectFile(
 
   const destination = `workspaces/${workspaceId}/projects/${projectId}/files/${randomUUID()}-${originalName}`;
 
+  let storageUrl: string;
   try {
     const bytes = Buffer.from(await file.arrayBuffer());
-    await uploadFile(bytes, destination, {
+    storageUrl = await uploadFile(bytes, destination, {
       contentType: file.type || "application/octet-stream",
-      metadata: {
-        project: projectId,
-        uploadedBy: ctx.session.user.id,
-      },
     });
   } catch (err) {
     console.error("[uploadProjectFile] storage upload failed", err);
@@ -126,7 +126,8 @@ export async function uploadProjectFile(
       project: projectId,
       kind: "upload",
       name: displayName,
-      storagePath: destination,
+      // Full public Blob URL — used directly by the download routes.
+      storagePath: storageUrl,
       originalName,
       contentType: file.type || "application/octet-stream",
       size: file.size,
@@ -136,7 +137,7 @@ export async function uploadProjectFile(
     console.error("[uploadProjectFile] db write failed", err);
     // Roll back the orphaned object so storage and DB stay consistent.
     try {
-      await deleteFile(destination);
+      await deleteFile(storageUrl);
     } catch {
       /* best-effort cleanup */
     }

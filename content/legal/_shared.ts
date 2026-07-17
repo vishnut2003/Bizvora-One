@@ -28,7 +28,8 @@ export const SUBPROCESSORS_TABLE = `| Sub-processor | Purpose | Data shared | Pr
 | --- | --- | --- | --- |
 | Resend | Transactional email delivery (invitations, notifications, password resets) | Recipient name & email, message content | United States |
 | Vapi | Outbound AI voice calls to leads | Lead name, company, phone number, call context | United States |
-| Google / Firebase | File storage (Firebase Storage) and Google Sign-In (OAuth) | Uploaded files, account email & profile | United States / global |
+| Google | Google Sign-In (OAuth) authentication | Account email & profile | United States / global |
+| Vercel | File storage (Vercel Blob) | Uploaded files | United States / global |
 | Google Ads | Inbound lead-form webhook ingestion | Lead form submissions (name, email, phone), campaign & click identifiers | United States / global |
 | Anthropic (Claude) | AI generation of sales proposals | Prompt content you provide for proposal drafting | United States |
 | MongoDB Atlas | Primary application database hosting | All application data at rest | Mumbai, India (ap-south-1) |`;

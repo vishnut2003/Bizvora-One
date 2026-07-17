@@ -20,8 +20,8 @@ const proposalDataSchema = new Schema(
 
 /**
  * Future-proof attachment slot. Today it's always empty — when we wire up
- * Firebase Storage we'll push entries like
- *   { kind: "pdf", provider: "firebase", url, filename, sizeBytes }
+ * Vercel Blob storage we'll push entries like
+ *   { kind: "pdf", provider: "vercel-blob", url, filename, sizeBytes }
  * here so the chat history can deep-link to the rendered PDF.
  */
 const attachmentSchema = new Schema(

@@ -99,7 +99,7 @@ No lead/customer DELETE — the web has none (parity rule).
 | POST | `…/tasks/:taskId/status` | `{ status }`; team members: own tasks only, "done" lands as `in_review` |
 | GET/POST | `…/projects/:projectId/milestones` · PATCH/DELETE `…/milestones/:milestoneId` | manager roles for writes |
 | GET | `…/projects/:projectId/files` | list only (no upload in v1) |
-| GET | `…/files/:fileId/download-url` | `{ url, kind, expiresAt }` (signed URL, 1 h) |
+| GET | `…/files/:fileId/download-url` | `{ url, kind, expiresAt }`; uploads return a permanent public Blob URL with `expiresAt: null` |
 
 ### Finance
 Voucher bodies share a wire shape: `partyId/partyName/partyCompany/partyEmail/partyGstin`,

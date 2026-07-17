@@ -7,7 +7,6 @@ import Project from "@/models/project";
 import ProjectFile from "@/models/project-file";
 import { getActorRole } from "@/lib/workspace-access";
 import { canViewAllProjects } from "@/lib/project";
-import { getSignedDownloadUrl } from "@/lib/storage";
 
 type WorkspaceLike = {
   owner: unknown;
@@ -85,13 +84,7 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
-  try {
-    const url = await getSignedDownloadUrl(file.storagePath);
-    return NextResponse.redirect(url);
-  } catch (err) {
-    console.error("[files/download] signed url failed", err);
-    return new NextResponse("Couldn't generate a download link.", {
-      status: 500,
-    });
-  }
+  // storagePath holds the full public Blob URL. Redirect straight to it — the
+  // auth/membership checks above gate who can reach this route.
+  return NextResponse.redirect(file.storagePath);
 }

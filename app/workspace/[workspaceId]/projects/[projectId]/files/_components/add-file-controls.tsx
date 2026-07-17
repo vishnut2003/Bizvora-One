@@ -175,7 +175,7 @@ function UploadPopup({
                 Choose a file
               </span>
               <span className="text-[11.5px] text-zinc-500 dark:text-zinc-400">
-                Up to 25 MB
+                Up to 4.5 MB
               </span>
             </span>
           )}
